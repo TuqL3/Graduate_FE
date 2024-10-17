@@ -26,7 +26,7 @@ const Sidebar = () => {
   }, []);
 
   const menuItems = [
-    { name: 'Calendar', icon: <BsCalendarEvent />, href: '/' },
+    { name: 'Calendar', icon: <BsCalendarEvent />, href: '/calendar' },
     { name: 'Report', icon: <GoReport />, href: '/report' },
     { name: 'Rooms', icon: <LuSchool />, href: '/rooms' },
     { name: 'Users', icon: <CiUser />, href: '/users' },
@@ -45,7 +45,9 @@ const Sidebar = () => {
               <Link
                 href={item.href}
                 className={`flex items-center ${
-                  pathName == item.href ? 'bg-red-400 text-white' : ''
+                  pathName.slice(1).includes(item.href.slice(1))
+                    ? 'bg-red-400 text-white'
+                    : ''
                 } text-black w-full p-2 rounded-lg hover:bg-red-200 hover:no-underline`}
               >
                 <span className="mr-3">{item.icon}</span>

@@ -6,9 +6,9 @@ import moment from 'moment';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { SearchBar } from './components/searchBar';
-import EventForm from './components/eventForm';
-import './css.css';
+import '../css.css';
+import { SearchBar } from '../components/searchBar';
+import EventForm from '../components/eventForm';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -90,29 +90,6 @@ const CalendarSchedule = () => {
     setShowEventForm(true);
     setIsModify(true);
   };
-
-  // const handleSelectSlot = (slotInfo: any) => {
-  //   setNewEvent({
-  //     ...newEvent,
-  //     start: slotInfo.start,
-  //     end: slotInfo.end,
-  //   });
-  //   setShowEventForm(true);
-  // };
-
-  // const handleSelectEvent = (event: any) => {
-
-  //   setNewEvent({
-  //     ...newEvent,
-  //     title: event.title,
-  //     description: event.description,
-  //     start: event.start,
-  //     end: event.end,
-  //     location: event.location,
-  //     participants: event.participants,
-  //   });
-  //   setShowEventForm(true);
-  // };
 
   const handleEventDrop = ({ event, start, end }) => {
     const updatedEvents = events.map((ev) =>
