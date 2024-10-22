@@ -1,22 +1,37 @@
-import Sidebar from '@/components/sidebar';
+'use client';
+
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import NavigationBar from '@/components/navbar';
 import Footer from '@/components/footer';
+import './css.css';
+import Header from '@/components/Header';
+import Sidebar1 from '@/components/Sidebar/index';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useRouter } from 'next/navigation';
 export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="block w-full h-full min-h-[80px]">
-      <div className="fixed top-0 right-0 left-0">
-        <NavigationBar />
-      </div>
+  const navigate = useRouter();
+  const user = useAppSelector((state: any) => state.auth.user);
+  console.log(user);
+  if (!user) {
+    navigate.push('/login');
+  }
 
-      <div className="flex mt-[76px]">
-        <Sidebar />
-        <div className="container m-0 p-4">{children}</div>
+  return (
+    <div>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar1 />
+        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <Header />
+          <main>
+            <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
       <Footer />
     </div>

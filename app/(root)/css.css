@@ -9,9 +9,14 @@
     background: white;
 }
 
-
 .rbc-header span{
     color: white;
+}
+
+@media (min-width: 1200px) {
+  .container {
+      max-width: 100%;
+  }
 }
 
 .rbc-header{
@@ -42,6 +47,10 @@
     }
   }
   
+ul{
+  padding-right: 0;
+  padding-left: 0;
+}
 
 /* CalendarSchedule.css */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');

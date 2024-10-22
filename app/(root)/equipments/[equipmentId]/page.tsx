@@ -28,20 +28,23 @@ const FormSchema = z.object({
   room: z.string().min(1, {
     message: 'Please select a room.',
   }),
-  type: z.enum(['all', 'mentions', 'none'], {
-    required_error: 'You need to select a notification type.',
+  status: z.enum(['working', 'maintained', 'broken'], {
+    required_error: 'You need to select a equipment status.',
   }),
-  idEquipment: z.string().min(2, {
-    message: 'Id Equipment must be at least 2 characters.',
+  name: z.string().min(2, {
+    message: 'Equipment name must be at least 2 characters.',
   }),
-  description: z.string().min(10, {
-    message: 'Description must be at least 10 characters.',
-  }),
+  
 });
 
-const CreateReport = () => {
+const CreateReport = ({ params }: { params: { reportId: string } }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      room: '',
+      status: 'working',
+      name: '',
+    },
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -76,10 +79,10 @@ const CreateReport = () => {
 
         <FormField
           control={form.control}
-          name="type"
+          name="status"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel>Type</FormLabel>
+              <FormLabel>Status</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -117,30 +120,12 @@ const CreateReport = () => {
 
         <FormField
           control={form.control}
-          name="idEquipment"
+          name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Id Equipment</FormLabel>
+              <FormLabel>Name equipment</FormLabel>
               <FormControl>
-                <Input placeholder="Id equipment" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Description"
-                  className="resize-none"
-                  {...field}
-                />
+                <Input placeholder="Name equipment" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

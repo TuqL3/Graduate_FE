@@ -6,6 +6,8 @@ import { BsCalendarEvent } from 'react-icons/bs';
 import { GoReport } from 'react-icons/go';
 import { CiUser } from 'react-icons/ci';
 import { LuSchool } from 'react-icons/lu';
+import { DraftingCompass } from 'lucide-react';
+import { Ruler } from 'lucide-react';
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathName = usePathname();
@@ -29,6 +31,7 @@ const Sidebar = () => {
     { name: 'Calendar', icon: <BsCalendarEvent />, href: '/calendar' },
     { name: 'Report', icon: <GoReport />, href: '/report' },
     { name: 'Rooms', icon: <LuSchool />, href: '/rooms' },
+    { name: 'Equipments', icon: <Ruler size={14} />, href: '/equipments' },
     { name: 'Users', icon: <CiUser />, href: '/users' },
   ];
 

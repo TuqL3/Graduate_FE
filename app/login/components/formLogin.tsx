@@ -15,6 +15,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { newRequest } from '@/lib/newRequest';
+import { useAppDispatch } from '@/lib/redux/hooks';
+import { login } from '@/lib/redux/features/auth/authSlice';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -26,6 +30,8 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
+  const dispatch = useAppDispatch();
+  const navigation = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,11 +39,22 @@ export function LoginForm() {
       password: '',
     },
   });
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const res = await newRequest.post('/api/v1/user/login', {
+      username: values.username,
+      password: values.password,
+    });
+    console.log(res.data);
+
+    dispatch(
+      login({
+        token: res.data.data.token,
+        user: res.data.data.user,
+      }),
+    );
+
+    navigation.push('/');
+  };
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -71,7 +88,7 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <div className='flex justify-between'>
+        <div className="flex justify-between">
           <Button
             className="bg-red-500 text-white hover:bg-white hover:text-red-500"
             type="submit"

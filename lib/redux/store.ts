@@ -1,17 +1,18 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers } from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import counterReducer from './features/couterSlice';
+import authReducer from './features/auth/authSlice';
+
+const rootReducer = combineReducers({
+  auth: authReducer,
+});
 
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user'], // only counter will be persisted
+  whitelist: ['auth'], 
 };
-
-const rootReducer = combineReducers({
-  counter: counterReducer,
-});
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -20,7 +21,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST'],
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
 });
