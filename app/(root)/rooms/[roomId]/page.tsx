@@ -36,7 +36,7 @@ const FormSchema = z.object({
   }),
 });
 
-const CreateReport = ({ params }: { params: { reportId: string } }) => {
+const CreateRoom = ({ params }: { params: { roomId: string } }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -104,7 +104,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
                 >
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="all" />
+                      <RadioGroupItem value="maintenance" />
                     </FormControl>
                     <FormLabel className="font-normal">
                       All new messages
@@ -112,7 +112,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="mentions" />
+                      <RadioGroupItem value="in_use" />
                     </FormControl>
                     <FormLabel className="font-normal">
                       Direct messages and mentions
@@ -120,7 +120,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="none" />
+                      <RadioGroupItem value="available" />
                     </FormControl>
                     <FormLabel className="font-normal">Nothing</FormLabel>
                   </FormItem>
@@ -145,11 +145,10 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
           )}
         />
 
-      
         <Button type="submit">Submit</Button>
       </form>
     </Form>
   );
 };
 
-export default CreateReport;
+export default CreateRoom;

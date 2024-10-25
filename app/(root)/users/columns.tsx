@@ -13,11 +13,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 export type User = {
   id: string;
-  userName: string;
-  fullName: string;
-  role: 'giang_vien' | 'giam_doc' | 'truc_ban'
+  username: string;
+  full_name: string;
+  role: 'giang_vien' | 'giam_doc' | 'truc_ban' | 'admin';
   email: string;
   phone: string;
 };
@@ -28,7 +33,7 @@ export const columns: ColumnDef<User>[] = [
     header: 'ID',
   },
   {
-    accessorKey: 'userName',
+    accessorKey: 'username',
     header: ({ column }) => {
       return (
         <Button
@@ -42,7 +47,7 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
-    accessorKey: 'fullName',
+    accessorKey: 'full_name',
     header: ({ column }) => {
       return (
         <Button
@@ -71,6 +76,18 @@ export const columns: ColumnDef<User>[] = [
     header: 'Actions',
     id: 'actions',
     cell: ({ row }) => {
+      const id = row.getValue('id');
+      const route = useRouter();
+      const token = useAppSelector((state: any) => state.auth.token);
+      const handleDelete = async () => {
+        await newRequest.delete(`/api/v1/user/delete/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast.success('Delete user success');
+        route.push('/users');
+      };
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -82,10 +99,18 @@ export const columns: ColumnDef<User>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Pencil />
-              <span>Update</span>
+              <Link
+                href={`/users/${id}`}
+                className="flex items-center justify-between text-black gap-2 hover:no-underline"
+              >
+                <Pencil />
+                <span>Update</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">
+            <DropdownMenuItem
+              className="text-red-500"
+              onClick={() => handleDelete()}
+            >
               <Trash2 />
               <span>Delete</span>
             </DropdownMenuItem>

@@ -243,7 +243,7 @@ const Sidebar1 = () => {
 
                 <ul className={`mb-6 flex flex-col gap-2`}>
                   {group.menuItems.map((menuItem: any, menuIndex: any) => (
-                    <div>
+                    <div key={menuIndex}>
                       <SidebarItem key={menuIndex} item={menuItem} />
                     </div>
                   ))}

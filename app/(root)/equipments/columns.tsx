@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { ArrowUpDown } from 'lucide-react';
@@ -13,12 +14,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import toast from 'react-hot-toast';
 export type Equipment = {
+  name_type: string;
   id: string;
-  room: string;
+  room: Room;
   name: string;
-  status: 'working' | 'broken' | 'maintained'
+  status: 'working' | 'broken' | 'maintained';
 };
+
+interface Room {
+  id: string;
+  room_name: string;
+}
 
 export const columns: ColumnDef<Equipment>[] = [
   {
@@ -26,6 +37,7 @@ export const columns: ColumnDef<Equipment>[] = [
     header: 'ID',
   },
   {
+    accessorFn: (row) => row.room.room_name,
     accessorKey: 'room',
     header: ({ column }) => {
       return (
@@ -61,6 +73,28 @@ export const columns: ColumnDef<Equipment>[] = [
     header: 'Actions',
     id: 'actions',
     cell: ({ row }) => {
+      const id = row.getValue('id');
+      const name_type = row.original?.name_type;
+      const route = useRouter();
+      const token = useAppSelector((state: any) => state.auth.token);
+      const handleDelete = async () => {
+        await newRequest.delete(`/api/v1/${name_type}/delete/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast.success('Delete equipment success');
+        route.refresh();
+      };
+
+      // const handleUpdate = async () => {
+      //   await newRequest.post(`/api/v1/${name_type}/update/${id}`, {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
+      // };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -72,10 +106,18 @@ export const columns: ColumnDef<Equipment>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Pencil />
-              <span>Update</span>
+              <Link
+                href={`/equipments/${name_type}/${id}`}
+                className="flex items-center justify-between text-black gap-2 hover:no-underline"
+              >
+                <Pencil />
+                <span>Update</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">
+            <DropdownMenuItem
+              onClick={() => handleDelete()}
+              className="text-red-500"
+            >
               <Trash2 />
               <span>Delete</span>
             </DropdownMenuItem>

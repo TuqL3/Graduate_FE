@@ -1,24 +1,47 @@
+'use client';
 import { Button } from '@/components/ui/button';
 import { Equipment, columns } from './columns';
 import { DataTable } from './data-table';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useState, useEffect } from 'react';
+import { User } from '../users/columns';
 
-async function getData(): Promise<Equipment[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: '728ed52f',
-      name: 'Dieu hoa',
-      room: 'Room1',
-      status: 'working',
-    },
-    // ...
-  ];
-}
+export default function DemoPage() {
+  const token = useAppSelector((state: any) => state.auth.token);
+  const [data, setData] = useState<Equipment[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const computer = await newRequest.get('/api/v1/computer', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const airCondition = await newRequest.get('/api/v1/aircondition', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const tandch = await newRequest.get('/api/v1/tandch', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setData([
+          ...computer.data.data,
+          ...airCondition.data.data,
+          ...tandch.data.data,
+        ]);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
 
-export default async function DemoPage() {
-  const data = await getData();
+    fetchData();
+  }, [token]);
 
   return (
     <div className="">
@@ -28,12 +51,12 @@ export default async function DemoPage() {
           <span className="opacity-40">Equipment list</span>
         </div>
 
-        <Link href={'/equipments/new'}>
+        <Link href={'/equipments/create/new'}>
           <Button
             className="flex items-center justify-between gap-2"
             variant={'destructive'}
           >
-            <Plus size={16} />  
+            <Plus size={16} />
             <span>Create equipment</span>
           </Button>
         </Link>
@@ -42,4 +65,3 @@ export default async function DemoPage() {
     </div>
   );
 }
- 

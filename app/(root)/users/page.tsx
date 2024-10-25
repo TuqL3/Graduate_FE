@@ -1,26 +1,34 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { User, columns } from './columns';
 import { DataTable } from './data-table';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useEffect, useState } from 'react';
 
-async function getData(): Promise<User[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: 'dsfasdf',
-      userName: 'tung',
-      fullName: 'TuqL3',
-      role: 'giang_vien',
-      email: 'admin@gmail.com',
-      phone: '1234567890',
-    },
-    // ...
-  ];
-}
+export default function DemoPage() {
+  const token = useAppSelector((state: any) => state.auth.token);
 
-export default async function DemoPage() {
-  const data = await getData();
+  const [data, setData] = useState<User[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await newRequest.get('/api/v1/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setData(res.data.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchData();
+  }, [token]);
 
   return (
     <div className="">

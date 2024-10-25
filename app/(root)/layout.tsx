@@ -15,7 +15,6 @@ export default function HomeLayout({
 }) {
   const navigate = useRouter();
   const user = useAppSelector((state: any) => state.auth.user);
-  console.log(user);
   if (!user) {
     navigate.push('/login');
   }
