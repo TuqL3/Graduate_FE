@@ -13,12 +13,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
+import { newRequest } from '@/lib/newRequest';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAppSelector } from '@/lib/redux/hooks';
+import toast from 'react-hot-toast';
 export type Report = {
   id: string;
-  room: string;
-  name: string;
+  room: Room;
+  equipmentId: string;
+  equipmentType: string;
   status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
 };
+
+interface Room {
+  id: string;
+  room_name: string;
+}
 
 export const columns: ColumnDef<Report>[] = [
   {
@@ -26,6 +38,7 @@ export const columns: ColumnDef<Report>[] = [
     header: 'ID',
   },
   {
+    accessorFn: (row) => row.room.room_name,
     accessorKey: 'room',
     header: ({ column }) => {
       return (
@@ -40,14 +53,30 @@ export const columns: ColumnDef<Report>[] = [
     },
   },
   {
-    accessorKey: 'name',
+    accessorFn: (row: any) => row.equipment_id,
+    accessorKey: 'equipmentId',
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Equipment
+          Equipment Id
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorFn: (row: any) => row.equipment_type,
+    accessorKey: 'equipmentType',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Equipment Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -61,6 +90,20 @@ export const columns: ColumnDef<Report>[] = [
     header: 'Actions',
     id: 'actions',
     cell: ({ row }) => {
+      const id = row.getValue('id');
+      const route = useRouter();
+      const token = useAppSelector((state: any) => state.auth.token);
+
+      const handleDelete = async () => {
+        await newRequest.delete(`/api/v1/report/delete/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        toast.success('Delete equipment success');
+        route.refresh();
+      };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -72,10 +115,18 @@ export const columns: ColumnDef<Report>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Pencil />
-              <span>Update</span>
+              <Link
+                className="flex items-center justify-between text-black gap-2 hover:no-underline"
+                href={`/report/${id}`}
+              >
+                <Pencil />
+                <span>Update</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">
+            <DropdownMenuItem
+              onClick={() => handleDelete()}
+              className="text-red-500"
+            >
               <Trash2 />
               <span>Delete</span>
             </DropdownMenuItem>

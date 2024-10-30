@@ -18,51 +18,31 @@ import { useRouter } from 'next/navigation';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
-export type Room = {
+export type Category = {
   id: string;
-  roomName: string;
-  capacity: string;
-  status: 'available' | 'in_use' | 'maintenance';
+  name: string;
 };
 
-export const columns: ColumnDef<Room>[] = [
+export const columns: ColumnDef<Category>[] = [
   {
     accessorKey: 'id',
     header: 'ID',
   },
   {
-    accessorFn: (row: any) => row.room_name,
-    accessorKey: 'roomName',
+    accessorKey: 'name',
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Room name
+          Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
-  {
-    accessorKey: 'capacity',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Capacity
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-  },
+
   {
     header: 'Actions',
     id: 'actions',
@@ -72,12 +52,12 @@ export const columns: ColumnDef<Room>[] = [
       const token = useAppSelector((state: any) => state.auth.token);
 
       const handleDelete = async () => {
-        await newRequest.delete(`/api/v1/room/delete/${id}`, {
+        await newRequest.delete(`/api/v1/category/delete/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        toast.success('Delete room success');
+        toast.success('Delete category success');
         route.refresh();
       };
       return (
@@ -93,7 +73,7 @@ export const columns: ColumnDef<Room>[] = [
             <DropdownMenuItem>
               <Link
                 className="flex items-center justify-between text-black gap-2 hover:no-underline"
-                href={`/rooms/${id}`}
+                href={`/category/${id}`}
               >
                 <Pencil />
                 <span>Update</span>

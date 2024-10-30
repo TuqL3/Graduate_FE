@@ -24,58 +24,112 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-const FormSchema = z.object({
-  roomName: z.string().min(1, {
-    message: 'Please enter room name.',
-  }),
-  status: z.enum(['available', 'in_use', 'maintenance'], {
-    required_error: 'You need to select a room status.',
-  }),
-  capacity: z.string().min(2, {
-    message: 'Capacity must be at least 2 characters.',
-  }),
-});
+import { useRouter } from 'next/navigation';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const CreateRoom = ({ params }: { params: { roomId: string } }) => {
+  const token = useAppSelector((state: any) => state.auth.token);
+  const route = useRouter();
+
+  const FormSchema = z.object({
+    roomName: z.string().min(1, {
+      message: 'Please enter room name.',
+    }),
+    status: z.enum(['available', 'in_use', 'maintenance'], {
+      required_error: 'You need to select a room status.',
+    }),
+    capacity: z.any(),
+  });
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       roomName: '',
-      status: 'in_use',
+      status: undefined,
       capacity: '',
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      if (params.roomId !== 'new') {
+        try {
+          const res = await newRequest.get(`/api/v1/room/${params.roomId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const roomData = res.data.data;
+
+          form.reset({
+            roomName: roomData.room_name,
+            capacity: roomData.capacity,
+            status: roomData.status,
+          });
+        } catch (error) {
+          console.error('Error fetching equipment:', error);
+        }
+      }
+    };
+
+    fetchRoomData();
+  }, [params.roomId, token, form]);
+
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      if (params.roomId === 'new') {
+        try {
+          const response = await newRequest.post(
+            `/api/v1/room/create`,
+            {
+              room_name: data.roomName,
+              capacity: parseInt(data.capacity),
+              status: data.status,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Create room success`);
+          route.push('/rooms');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/rooms');
+        }
+      } else {
+        try {
+          const response = await newRequest.put(
+            `/api/v1/room/update/${params.roomId}`,
+            {
+              room_name: data.roomName,
+              capacity: parseInt(data.capacity),
+              status: data.status,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Update room success`);
+          route.push('/rooms');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/rooms');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* <FormField
-          control={form.control}
-          name="roomName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Room</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a room" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
-
         <FormField
           control={form.control}
           name="roomName"
@@ -83,7 +137,7 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
             <FormItem>
               <FormLabel>Room name</FormLabel>
               <FormControl>
-                <Input placeholder="Id equipment" {...field} />
+                <Input placeholder="Room name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,29 +154,26 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-col space-y-1"
                 >
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="maintenance" />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      All new messages
-                    </FormLabel>
+                    <FormLabel className="font-normal">Maintenance</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="in_use" />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      Direct messages and mentions
-                    </FormLabel>
+                    <FormLabel className="font-normal">In use</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="available" />
                     </FormControl>
-                    <FormLabel className="font-normal">Nothing</FormLabel>
+                    <FormLabel className="font-normal">Available</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

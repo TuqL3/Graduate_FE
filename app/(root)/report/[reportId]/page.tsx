@@ -24,34 +24,137 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-const FormSchema = z.object({
-  room: z.string().min(1, {
-    message: 'Please select a room.',
-  }),
-  type: z.enum(['all', 'mentions', 'none'], {
-    required_error: 'You need to select a notification type.',
-  }),
-  idEquipment: z.string().min(2, {
-    message: 'Id Equipment must be at least 2 characters.',
-  }),
-  description: z.string().min(10, {
-    message: 'Description must be at least 10 characters.',
-  }),
-});
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useEffect, useState } from 'react';
+import { Room } from '../../rooms/columns';
+import { useRouter } from 'next/navigation';
+import { newRequest } from '@/lib/newRequest';
+import toast from 'react-hot-toast';
 
 const CreateReport = ({ params }: { params: { reportId: string } }) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const user = useAppSelector((state: any) => state.auth.user);
+  const token = useAppSelector((state: any) => state.auth.token);
+  const route = useRouter();
+
+  const FormSchema = z.object({
+    room: z.string().min(1, {
+      message: 'Please select a room.',
+    }),
+    type: z.enum(['computer', 'tandch', 'aircondition'], {
+      required_error: 'You need to select a notification type.',
+    }),
+    idEquipment: z.any(),
+    description: z.string().min(1, {
+      message: 'Description must be at least 10 characters.',
+    }),
+  });
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       room: '',
-      type: 'none',
+      type: undefined,
       idEquipment: '',
       description: '',
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  useEffect(() => {
+    const fetchRoom = async () => {
+      const res = await newRequest.get('/api/v1/room', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setRooms(res.data.data);
+    };
+
+    const fetchReportData = async () => {
+      if (params.reportId !== 'new') {
+        try {
+          const res = await newRequest.get(
+            `/api/v1/report/${params.reportId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          const reportData = res.data.data;
+
+          form.reset({
+            room: String(reportData.room.id),
+            type: reportData.equipment_type,
+            idEquipment: reportData.equipment_id,
+            description: reportData.description,
+          });
+        } catch (error) {
+          console.error('Error fetching equipment:', error);
+        }
+      }
+    };
+
+    fetchRoom();
+    fetchReportData();
+  }, [params.reportId, token, form]);
+
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      if (params.reportId === 'new') {
+        try {
+          const response = await newRequest.post(
+            `/api/v1/report/create`,
+            {
+              user_id: user.id,
+              room_id: parseInt(data.room),
+              equipment_id: data.idEquipment,
+              equipment_type: data.type,
+              description: data.description,
+              status: 'pending',
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Create report success`);
+          route.push('/report');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/report');
+        }
+      } else {
+        try {
+          const response = await newRequest.put(
+            `/api/v1/report/update/${params.reportId}`,
+            {
+              user_id: user.id,
+              room_id: parseInt(data.room),
+              equipment_id: data.idEquipment,
+              equipment_type: data.type,
+              description: data.description,
+              status: 'pending',
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Update report success`);
+          route.push('/report');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/report');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   }
   return (
     <Form {...form}>
@@ -62,16 +165,24 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Room</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a room" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
+                  {rooms.map((item: any, index: any) => {
+                    return (
+                      <SelectItem key={index} value={String(item.id)}>
+                        {item.room_name}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
 
@@ -90,29 +201,26 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-col space-y-1"
                 >
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="all" />
+                      <RadioGroupItem value="computer" />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      All new messages
-                    </FormLabel>
+                    <FormLabel className="font-normal">Computer</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="mentions" />
+                      <RadioGroupItem value="tandch" />
                     </FormControl>
-                    <FormLabel className="font-normal">
-                      Direct messages and mentions
-                    </FormLabel>
+                    <FormLabel className="font-normal">Table & Chair</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="none" />
+                      <RadioGroupItem value="aircondition" />
                     </FormControl>
-                    <FormLabel className="font-normal">Nothing</FormLabel>
+                    <FormLabel className="font-normal">Air condition</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

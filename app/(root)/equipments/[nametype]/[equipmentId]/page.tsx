@@ -27,6 +27,7 @@ import { useEffect, useState } from 'react';
 import { Room } from '@/app/(root)/rooms/columns';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { Category } from '@/app/(root)/category/columns';
 
 const CreateEquipment = ({
   params,
@@ -50,6 +51,7 @@ const CreateEquipment = ({
   });
 
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const token = useAppSelector((state: any) => state.auth.token);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -71,6 +73,15 @@ const CreateEquipment = ({
         },
       });
       setRooms(res.data.data);
+    };
+
+    const fetchCategory = async () => {
+      const res = await newRequest.get('/api/v1/category', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setCategories(res.data.data);
     };
 
     const fetchEquipmentData = async () => {
@@ -101,27 +112,40 @@ const CreateEquipment = ({
 
     fetchRoom();
     fetchEquipmentData();
+    fetchCategory();
   }, [params.equipmentId, params.nametype, token, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       if (params.equipmentId === 'new') {
         try {
-          const response = await newRequest.post(
-            `/api/v1/${data.nametype}/create`,
-            {
-              name: data.name,
-              room_id: parseInt(data.room),
-              status: data.status,
-            },
+          const cate = await newRequest.get(
+            `/api/v1/category/${data.nametype}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             },
           );
+
+          console.log();
+
+          // const response = await newRequest.post(
+          //   `/api/v1/${data.nametype}/create`,
+          //   {
+          //     name: data.name,
+          //     room_id: parseInt(data.room),
+          //     status: data.status,
+          //     category_id: data.nametype,
+          //   },
+          //   {
+          //     headers: {
+          //       Authorization: `Bearer ${token}`,
+          //     },
+          //   },
+          // );
           toast.success(`Create ${params.nametype} success`);
-          route.push('/equipments');
+          // route.push('/equipments');
         } catch (error) {
           toast.error('Something went wrong');
           route.push('/equipments');
@@ -134,6 +158,7 @@ const CreateEquipment = ({
               name: data.name,
               room_id: parseInt(data.room),
               status: data.status,
+              category_id: data.nametype,
             },
             {
               headers: {
@@ -151,6 +176,8 @@ const CreateEquipment = ({
     } catch (error) {
       console.error('Error:', error);
     }
+
+    console.log(data);
   }
 
   return (
@@ -186,42 +213,71 @@ const CreateEquipment = ({
         />
 
         {params.equipmentId === 'new' && (
+          // <FormField
+          //   control={form.control}
+          //   name="nametype"
+          //   render={({ field }) => (
+          //     <FormItem className="space-y-3">
+          //       <FormLabel>Type</FormLabel>
+          //       <FormControl>
+          //         <RadioGroup
+          //           onValueChange={field.onChange}
+          //           defaultValue={field.value}
+          //           className="flex flex-col space-y-1"
+          //         >
+          //           <FormItem className="flex items-center space-x-3 space-y-0">
+          //             <FormControl>
+          //               <RadioGroupItem value="computer" />
+          //             </FormControl>
+          //             <FormLabel className="font-normal">Computer</FormLabel>
+          //           </FormItem>
+          //           <FormItem className="flex items-center space-x-3 space-y-0">
+          //             <FormControl>
+          //               <RadioGroupItem value="aircondition" />
+          //             </FormControl>
+          //             <FormLabel className="font-normal">
+          //               Air condition
+          //             </FormLabel>
+          //           </FormItem>
+          //           <FormItem className="flex items-center space-x-3 space-y-0">
+          //             <FormControl>
+          //               <RadioGroupItem value="tandch" />
+          //             </FormControl>
+          //             <FormLabel className="font-normal">
+          //               Table & chair
+          //             </FormLabel>
+          //           </FormItem>
+          //         </RadioGroup>
+          //       </FormControl>
+          //       <FormMessage />
+          //     </FormItem>
+          //   )}
+          // />
+
           <FormField
             control={form.control}
             name="nametype"
             render={({ field }) => (
-              <FormItem className="space-y-3">
+              <FormItem>
                 <FormLabel>Type</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="computer" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Computer</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="aircondition" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Air condition
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="tandch" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Table & chair
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((item: any, index: any) => (
+                      <SelectItem key={index} value={String(item.id)}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

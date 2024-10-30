@@ -1,24 +1,37 @@
+"use client"
+
 import { Button } from '@/components/ui/button';
 import { Room, columns } from './columns';
 import { DataTable } from './data-table';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useState, useEffect } from 'react';
 
-async function getData(): Promise<Room[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: '728ed52f',
-      roomName: 'Dieu hoa',
-      capacity: 'Room1',
-      status: 'in_use',
-    },
-    // ...
-  ];
-}
+export default function DemoPage() {
+  const token = useAppSelector((state: any) => state.auth.token);
+  const [data, setData] = useState<Room[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const room = await newRequest.get('/api/v1/room', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-export default async function DemoPage() {
-  const data = await getData();
+        setData(room.data.data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchData();
+  }, [token]);
+
+  console.log(data);
+  
 
   return (
     <div className="">
