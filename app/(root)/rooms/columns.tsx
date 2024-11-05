@@ -20,9 +20,8 @@ import { useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
 export type Room = {
   id: string;
-  roomName: string;
-  capacity: string;
-  status: 'available' | 'in_use' | 'maintenance';
+  name: string;
+  status: string;
 };
 
 export const columns: ColumnDef<Room>[] = [
@@ -31,8 +30,7 @@ export const columns: ColumnDef<Room>[] = [
     header: 'ID',
   },
   {
-    accessorFn: (row: any) => row.room_name,
-    accessorKey: 'roomName',
+    accessorKey: 'name',
     header: ({ column }) => {
       return (
         <Button
@@ -40,20 +38,6 @@ export const columns: ColumnDef<Room>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Room name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: 'capacity',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Capacity
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

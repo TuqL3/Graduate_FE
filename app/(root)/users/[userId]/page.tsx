@@ -32,6 +32,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
 const CreateUser = ({ params }: { params: { userId: string } }) => {
+  const [roles, setRoles] = useState([]);
   const route = useRouter();
   const FormSchema = z.object({
     username:
@@ -40,9 +41,7 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
             message: 'Enter username.',
           })
         : z.string().optional(),
-    role: z.enum(['giang_vien', 'truc_ban', 'giam_doc', 'admin'], {
-      required_error: 'You need to select a user role.',
-    }),
+    roles: z.any(),
     full_name: z.string().min(2, {
       message: 'Fullname must be at least 2 characters.',
     }),
@@ -62,6 +61,18 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
 
   const token = useAppSelector((state: any) => state.auth.token);
 
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      username: '',
+      full_name: '',
+      roles: '',
+      email: '',
+      phone: '',
+      password: params.userId === 'new' ? '' : undefined,
+    },
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       if (params.userId !== 'new') {
@@ -71,26 +82,16 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
               Authorization: `Bearer ${token}`,
             },
           });
- 
+
           const userData = res.data.data;
 
-          await form.reset(
-            {
-              username: userData.username,
-              role: userData.role,
-              full_name: userData.full_name,
-              email: userData.email,
-              phone: userData.phone,
-            },
-            {
-              keepDefaultValues: false,
-            },
-          );
-
-          form.setValue('role', userData.role, {
-            shouldValidate: true,
-            shouldDirty: true,
-            shouldTouch: true,
+          // Set form values including roles
+          form.reset({
+            username: userData.username,
+            roles: String(userData.roles[0].id),
+            full_name: userData.full_name,
+            email: userData.email,
+            phone: userData.phone,
           });
         } catch (error) {
           console.error('Error fetching user:', error);
@@ -98,26 +99,28 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
       }
     };
 
-    fetchData();
-  }, [params.userId, token]);
+    const fetchRoleData = async () => {
+      try {
+        const res = await newRequest.get('/api/v1/role', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setRoles(res.data.data);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      }
+    };
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      username: '',
-      full_name: '',
-      role: 'giang_vien',
-      email: '',
-      phone: '',
-      password: params.userId === 'new' ? '' : undefined,
-    },
-  });
+    fetchRoleData();
+    fetchData();
+  }, [params.userId, token, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       if (params.userId === 'new') {
         try {
-          const response = await newRequest.post(
+          await newRequest.post(
             '/api/v1/user/register',
             {
               username: data.username,
@@ -125,7 +128,7 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
               full_name: data.full_name,
               email: data.email,
               phone: data.phone,
-              role: data.role,
+              roles: [parseInt(data.roles)],
             },
             {
               headers: {
@@ -137,17 +140,16 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
           route.push('/users');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/users');
         }
       } else {
         try {
-          const response = await newRequest.put(
+          await newRequest.put(
             `/api/v1/user/update/${params.userId}`,
             {
               full_name: data.full_name,
               email: data.email,
               phone: data.phone,
-              role: data.role,
+              roles: [parseInt(data.roles)],
             },
             {
               headers: {
@@ -159,13 +161,13 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
           route.push('/users');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/users');
         }
       }
     } catch (error) {
       console.error('Error:', error);
     }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -220,7 +222,7 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="Password" {...field} />
+                  <Input type="password" placeholder="Password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -244,7 +246,7 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
 
         <FormField
           control={form.control}
-          name="role"
+          name="roles"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
@@ -255,10 +257,11 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="truc_ban">Trực ban</SelectItem>
-                  <SelectItem value="giang_vien">Giảng viên</SelectItem>
-                  <SelectItem value="giam_doc">Giám đốc</SelectItem>
+                  {roles.map((item: any) => (
+                    <SelectItem key={item.id} value={String(item.id)}>
+                      {item.role_name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

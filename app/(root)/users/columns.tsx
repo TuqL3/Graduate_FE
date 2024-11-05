@@ -22,7 +22,7 @@ export type User = {
   id: string;
   username: string;
   full_name: string;
-  role: 'giang_vien' | 'giam_doc' | 'truc_ban' | 'admin';
+  role: string;
   email: string;
   phone: string;
 };
@@ -61,6 +61,7 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
+    accessorFn: (row: any) => row.roles.map((item: any) => item.role_name),
     accessorKey: 'role',
     header: 'Role',
   },

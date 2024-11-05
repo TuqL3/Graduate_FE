@@ -116,17 +116,17 @@ const menuGroups = [
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
           >
             <line x1="4" x2="20" y1="12" y2="12" />
             <line x1="4" x2="20" y1="6" y2="6" />
             <line x1="4" x2="20" y1="18" y2="18" />
           </svg>
         ),
-        label: 'Category',
-        route: '/category',
+        label: 'Type',
+        route: '/type',
       },
       {
         icon: (
@@ -137,9 +137,67 @@ const menuGroups = [
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
+          >
+            <circle cx="18" cy="15" r="3" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M10 15H6a4 4 0 0 0-4 4v2" />
+            <path d="m21.7 16.4-.9-.3" />
+            <path d="m15.2 13.9-.9-.3" />
+            <path d="m16.6 18.7.3-.9" />
+            <path d="m19.1 12.2.3-.9" />
+            <path d="m19.6 18.7-.4-1" />
+            <path d="m16.8 12.3-.4-1" />
+            <path d="m14.3 16.6 1-.4" />
+            <path d="m20.7 13.8 1-.4" />
+          </svg>
+        ),
+        label: 'Permission',
+        route: '/permission',
+      },
+      {
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
+          >
+            <circle cx="18" cy="15" r="3" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M10 15H6a4 4 0 0 0-4 4v2" />
+            <path d="m21.7 16.4-.9-.3" />
+            <path d="m15.2 13.9-.9-.3" />
+            <path d="m16.6 18.7.3-.9" />
+            <path d="m19.1 12.2.3-.9" />
+            <path d="m19.6 18.7-.4-1" />
+            <path d="m16.8 12.3-.4-1" />
+            <path d="m14.3 16.6 1-.4" />
+            <path d="m20.7 13.8 1-.4" />
+          </svg>
+        ),
+        label: 'Role',
+        route: '/role',
+      },
+      {
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
             className="lucide lucide-pen"
           >
             <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
@@ -157,9 +215,9 @@ const menuGroups = [
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
             className="lucide lucide-message-square-warning"
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -179,9 +237,9 @@ const menuGroups = [
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            // stroke-width="2"
+            // stroke-linecap="round"
+            // stroke-linejoin="round"
             className="lucide lucide-school"
           >
             <path d="M14 22v-4a2 2 0 1 0-4 0v4" />

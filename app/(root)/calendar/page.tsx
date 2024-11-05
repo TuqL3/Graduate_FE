@@ -9,6 +9,9 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import '../css.css';
 import { SearchBar } from '../components/searchBar';
 import EventForm from '../components/eventForm';
+import { newRequest } from '@/lib/newRequest';
+import { headers } from 'next/headers';
+import { useAppSelector } from '@/lib/redux/hooks';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -38,30 +41,39 @@ const CalendarSchedule = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
+  const token = useAppSelector((state: any) => state.auth.token);
+
+
+  const transformToEvents = (apiData: any) => {
+    return apiData.data.map((schedule: any) => ({
+      id: schedule.id,
+      title: schedule.title,
+      description: schedule.description,
+      location: schedule.room.id,
+      participants: schedule.user.id,
+      start: new Date(schedule.start_time),
+      end: new Date(schedule.end_time),
+    }));
+  };
 
   useEffect(() => {
-    // Simulating fetching events from an API
-    const fetchedEvents = [
-      {
-        id: 1,
-        title: 'Meeting with team',
-        start: moment().toDate(),
-        end: moment().add(1, 'hours').toDate(),
-        description: 'Discuss project progress',
-        location: 'Conference Room A',
-        participants: 'John, Jane, Bob',
-      },
-      {
-        id: 2,
-        title: 'Lunch break',
-        start: moment().add(2, 'hours').toDate(),
-        end: moment().add(3, 'hours').toDate(),
-        description: 'Team lunch',
-        location: 'Cafeteria',
-        participants: 'All team members',
-      },
-    ];
-    setEvents(fetchedEvents);
+    const fetchData = async () => {
+      try {
+        const res = await newRequest.get('/api/v1/schedule', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const events = transformToEvents(res.data);
+
+        setEvents(events);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleSelectSlot = (slotInfo: any) => {
@@ -103,8 +115,9 @@ const CalendarSchedule = () => {
     setNewEvent({ ...newEvent, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!newEvent.title || !newEvent.start || !newEvent.end) {
       setError('Please fill in all required fields.');
       return;
@@ -113,8 +126,30 @@ const CalendarSchedule = () => {
       setError('End time must be after start time.');
       return;
     }
-    setEvents([...events, { ...newEvent, id: events.length + 1 }]);
+
+    const newEventObject = { ...newEvent, id: events.length + 1 };
+
+    setEvents((prevEvents) => [...prevEvents, newEventObject]);
+
+    const res = await newRequest.post(
+      '/api/v1/schedule/create',
+      {
+        location: parseInt(newEventObject.location),
+        participants: parseInt(newEventObject.participants),
+        description: newEventObject.description,
+        start: newEventObject.start,
+        end: newEventObject.end,
+        title: newEventObject.title,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
     setShowEventForm(false);
+
     setNewEvent({
       title: '',
       start: new Date(),
@@ -123,11 +158,12 @@ const CalendarSchedule = () => {
       location: '',
       participants: '',
     });
+
     setError('');
   };
 
   const filteredEvents = events.filter((event) =>
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    event.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

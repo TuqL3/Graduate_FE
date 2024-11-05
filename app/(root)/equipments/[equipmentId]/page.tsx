@@ -27,40 +27,32 @@ import { useEffect, useState } from 'react';
 import { Room } from '@/app/(root)/rooms/columns';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import { Category } from '@/app/(root)/category/columns';
 
-const CreateEquipment = ({
-  params,
-}: {
-  params: { nametype: string; equipmentId: string };
-}) => {
+const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
   const FormSchema = z.object({
-    room: z.string(),
-    status: z.enum(['working', 'maintained', 'broken'], {
-      required_error: 'You need to select a equipment status.',
+    room: z.string().min(1, {
+      message: 'Room must be at least 2 characters.',
     }),
-    name: z.string().min(2, {
+    status: z.string(),
+    name: z.string().min(1, {
       message: 'Equipment name must be at least 2 characters.',
     }),
-    nametype:
-      params.equipmentId === 'new'
-        ? z
-            .string()
-            .min(1, { message: 'Nametype must be at least 1 characters.' })
-        : z.string().optional(),
+    type: z.string().min(1, {
+      message: 'Equipment name must be at least 2 characters.',
+    }),
   });
 
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [rooms, setRooms] = useState([]);
+  const [types, setTypes] = useState([]);
   const token = useAppSelector((state: any) => state.auth.token);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      room: '',
-      status: undefined,
+      room: undefined,
+      status: '',
       name: '',
-      nametype: params.equipmentId === 'new' ? '' : params.nametype,
+      type: undefined,
     },
   });
 
@@ -75,20 +67,20 @@ const CreateEquipment = ({
       setRooms(res.data.data);
     };
 
-    const fetchCategory = async () => {
-      const res = await newRequest.get('/api/v1/category', {
+    const fetchType = async () => {
+      const res = await newRequest.get('/api/v1/equipmenttype', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setCategories(res.data.data);
+      setTypes(res.data.data);
     };
 
     const fetchEquipmentData = async () => {
       if (params.equipmentId !== 'new') {
         try {
           const res = await newRequest.get(
-            `/api/v1/${params.nametype}/${params.equipmentId}`,
+            `/api/v1/equipment/${params.equipmentId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -97,12 +89,15 @@ const CreateEquipment = ({
           );
 
           const equipmentData = res.data.data;
+          console.log(equipmentData);
 
           form.reset({
-            room: String(equipmentData.room.id),
+            room: String(equipmentData.room_id),
             status: equipmentData.status,
             name: equipmentData.name,
-            nametype: params.nametype,
+            type: equipmentData.equipment_type_id
+              ? String(equipmentData.equipment_type_id)
+              : '',
           });
         } catch (error) {
           console.error('Error fetching equipment:', error);
@@ -112,40 +107,29 @@ const CreateEquipment = ({
 
     fetchRoom();
     fetchEquipmentData();
-    fetchCategory();
-  }, [params.equipmentId, params.nametype, token, form]);
+    fetchType();
+  }, [params.equipmentId, token, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       if (params.equipmentId === 'new') {
         try {
-          const cate = await newRequest.get(
-            `/api/v1/category/${data.nametype}`,
+          const response = await newRequest.post(
+            `/api/v1/equipment/create`,
+            {
+              name: data.name,
+              room_id: parseInt(data.room),
+              status: data.status,
+              equipment_type_id: parseInt(data.type),
+            },
             {
               headers: {
                 Authorization: `Bearer ${token}`,
               },
             },
           );
-
-          console.log();
-
-          // const response = await newRequest.post(
-          //   `/api/v1/${data.nametype}/create`,
-          //   {
-          //     name: data.name,
-          //     room_id: parseInt(data.room),
-          //     status: data.status,
-          //     category_id: data.nametype,
-          //   },
-          //   {
-          //     headers: {
-          //       Authorization: `Bearer ${token}`,
-          //     },
-          //   },
-          // );
-          toast.success(`Create ${params.nametype} success`);
-          // route.push('/equipments');
+          toast.success(`Create equipment success`);
+          route.push('/equipments');
         } catch (error) {
           toast.error('Something went wrong');
           route.push('/equipments');
@@ -153,12 +137,12 @@ const CreateEquipment = ({
       } else {
         try {
           const response = await newRequest.put(
-            `/api/v1/${params.nametype}/update/${params.equipmentId}`,
+            `/api/v1/equipment/update/${params.equipmentId}`,
             {
               name: data.name,
               room_id: parseInt(data.room),
               status: data.status,
-              category_id: data.nametype,
+              equipment_type_id: parseInt(data.type),
             },
             {
               headers: {
@@ -166,7 +150,7 @@ const CreateEquipment = ({
               },
             },
           );
-          toast.success(`Update ${params.nametype} success`);
+          toast.success(`Update equipment success`);
           route.push('/equipments');
         } catch (error) {
           toast.error('Something went wrong');
@@ -202,7 +186,7 @@ const CreateEquipment = ({
                 <SelectContent>
                   {rooms.map((item: any, index: any) => (
                     <SelectItem key={index} value={String(item.id)}>
-                      {item.room_name}
+                      {item.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -212,77 +196,34 @@ const CreateEquipment = ({
           )}
         />
 
-        {params.equipmentId === 'new' && (
-          // <FormField
-          //   control={form.control}
-          //   name="nametype"
-          //   render={({ field }) => (
-          //     <FormItem className="space-y-3">
-          //       <FormLabel>Type</FormLabel>
-          //       <FormControl>
-          //         <RadioGroup
-          //           onValueChange={field.onChange}
-          //           defaultValue={field.value}
-          //           className="flex flex-col space-y-1"
-          //         >
-          //           <FormItem className="flex items-center space-x-3 space-y-0">
-          //             <FormControl>
-          //               <RadioGroupItem value="computer" />
-          //             </FormControl>
-          //             <FormLabel className="font-normal">Computer</FormLabel>
-          //           </FormItem>
-          //           <FormItem className="flex items-center space-x-3 space-y-0">
-          //             <FormControl>
-          //               <RadioGroupItem value="aircondition" />
-          //             </FormControl>
-          //             <FormLabel className="font-normal">
-          //               Air condition
-          //             </FormLabel>
-          //           </FormItem>
-          //           <FormItem className="flex items-center space-x-3 space-y-0">
-          //             <FormControl>
-          //               <RadioGroupItem value="tandch" />
-          //             </FormControl>
-          //             <FormLabel className="font-normal">
-          //               Table & chair
-          //             </FormLabel>
-          //           </FormItem>
-          //         </RadioGroup>
-          //       </FormControl>
-          //       <FormMessage />
-          //     </FormItem>
-          //   )}
-          // />
-
-          <FormField
-            control={form.control}
-            name="nametype"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((item: any, index: any) => (
-                      <SelectItem key={index} value={String(item.id)}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {types.map((item: any, index: any) => (
+                    <SelectItem key={index} value={String(item.id)}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

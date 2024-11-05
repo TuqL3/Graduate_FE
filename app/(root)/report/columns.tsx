@@ -23,7 +23,7 @@ export type Report = {
   id: string;
   room: Room;
   equipmentId: string;
-  equipmentType: string;
+  // equipmentType: string;
   status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
 };
 
@@ -38,7 +38,7 @@ export const columns: ColumnDef<Report>[] = [
     header: 'ID',
   },
   {
-    accessorFn: (row) => row.room.room_name,
+    accessorFn: (row:any) => row.room.name,
     accessorKey: 'room',
     header: ({ column }) => {
       return (
@@ -67,21 +67,7 @@ export const columns: ColumnDef<Report>[] = [
       );
     },
   },
-  {
-    accessorFn: (row: any) => row.equipment_type,
-    accessorKey: 'equipmentType',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Equipment Type
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
+  
   {
     accessorKey: 'status',
     header: 'Status',

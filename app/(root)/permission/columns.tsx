@@ -18,31 +18,30 @@ import { useRouter } from 'next/navigation';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
-export type Category = {
+export type Permission = {
   id: string;
-  name: string;
+  permission_name: string;
 };
 
-export const columns: ColumnDef<Category>[] = [
+export const columns: ColumnDef<Permission>[] = [
   {
     accessorKey: 'id',
     header: 'ID',
   },
   {
-    accessorKey: 'name',
+    accessorKey: 'permission_name',
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Name
+          Permission name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
-
   {
     header: 'Actions',
     id: 'actions',
@@ -52,12 +51,12 @@ export const columns: ColumnDef<Category>[] = [
       const token = useAppSelector((state: any) => state.auth.token);
 
       const handleDelete = async () => {
-        await newRequest.delete(`/api/v1/category/delete/${id}`, {
+        await newRequest.delete(`/api/v1/permission/delete/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        toast.success('Delete category success');
+        toast.success('Delete permission success');
         route.refresh();
       };
       return (
@@ -73,7 +72,7 @@ export const columns: ColumnDef<Category>[] = [
             <DropdownMenuItem>
               <Link
                 className="flex items-center justify-between text-black gap-2 hover:no-underline"
-                href={`/category/${id}`}
+                href={`/permission/${id}`}
               >
                 <Pencil />
                 <span>Update</span>

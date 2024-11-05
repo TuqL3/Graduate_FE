@@ -11,30 +11,17 @@ import { User } from '../users/columns';
 
 export default function DemoPage() {
   const token = useAppSelector((state: any) => state.auth.token);
-  const [data, setData] = useState<Equipment[]>([]);
+  const [data, setData] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const computer = await newRequest.get('/api/v1/computer', {
+        const equipment = await newRequest.get('/api/v1/equipment', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        const airCondition = await newRequest.get('/api/v1/aircondition', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const tandch = await newRequest.get('/api/v1/tandch', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setData([
-          ...computer.data.data,
-          ...airCondition.data.data,
-          ...tandch.data.data,
-        ]);
+
+        setData(equipment.data.data);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
@@ -51,7 +38,7 @@ export default function DemoPage() {
           <span className="opacity-40">Equipment list</span>
         </div>
 
-        <Link href={'/equipments/create/new'}>
+        <Link href={'/equipments/new'}>
           <Button
             className="flex items-center justify-between gap-2"
             variant={'destructive'}

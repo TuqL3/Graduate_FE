@@ -30,6 +30,9 @@ export default function DemoPage() {
     fetchData();
   }, [token]);
 
+  console.log(data);
+  
+
   return (
     <div className="">
       <div className="flex items-center justify-between">

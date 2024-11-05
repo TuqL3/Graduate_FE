@@ -18,21 +18,19 @@ import { useEffect, useState } from 'react';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
 import { useRouter } from 'next/navigation';
+import { permission } from 'process';
+import toast from 'react-hot-toast';
 
-// Danh sách quyền sẽ được lấy từ API
 const CreateRoom = ({ params }: { params: { roleId: string } }) => {
   const [permissionList, setPermissionList] = useState([]);
   const token = useAppSelector((state: any) => state.auth.token);
-
-  
   const route = useRouter();
 
-  // Schema xác thực dữ liệu
   const FormSchema = z.object({
     role_name: z.string().min(1, {
       message: 'Please enter role name.',
     }),
-    permissions: z.array(z.any())
+    permissions: z.array(z.any()),
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -65,14 +63,77 @@ const CreateRoom = ({ params }: { params: { roleId: string } }) => {
       }
     };
 
+    const fetchRoleData = async () => {
+      if (params.roleId !== 'new') {
+        try {
+          const res = await newRequest.get(`/api/v1/role/${params.roleId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const roleData = res.data.data;
+
+          form.reset({
+            role_name: roleData.role_name,
+            permissions: roleData.permissions.map((item: any) => item.id),
+          });
+        } catch (error) {
+          console.error('Error fetching equipment:', error);
+        }
+      }
+    };
+    fetchRoleData();
     fetchPermission();
   }, [token]);
 
-  // Hàm xử lý khi submit
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
-    // Thực hiện gửi dữ liệu lên server ở đây
-    // ...
+    try {
+      if (params.roleId === 'new') {
+        try {
+          const response = await newRequest.post(
+            `/api/v1/role/create`,
+            {
+              role_name: data.role_name,
+              permissions: data.permissions,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Create role success`);
+          route.push('/role');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/role');
+        }
+      } else {
+        try {
+          const response = await newRequest.put(
+            `/api/v1/role/update/${params.roleId}`,
+            {
+              role_name: data.role_name,
+              permissions: [...data.permissions],
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          toast.success(`Update role success`);
+          route.push('/role');
+        } catch (error) {
+          toast.error('Something went wrong');
+          route.push('/role');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    
   }
 
   return (
@@ -103,7 +164,7 @@ const CreateRoom = ({ params }: { params: { roleId: string } }) => {
                   Select the permissions you want to assign.
                 </FormDescription>
               </div>
-              {permissionList.map((item:any) => (
+              {permissionList.map((item: any) => (
                 <FormItem
                   key={item.id}
                   className="flex flex-row items-start space-x-3 space-y-0"

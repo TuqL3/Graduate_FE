@@ -37,15 +37,13 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
   const token = useAppSelector((state: any) => state.auth.token);
   const route = useRouter();
 
+
   const FormSchema = z.object({
-    room: z.string().min(1, {
+    room_id: z.string().min(1, {
       message: 'Please select a room.',
     }),
-    type: z.enum(['computer', 'tandch', 'aircondition'], {
-      required_error: 'You need to select a notification type.',
-    }),
-    idEquipment: z.any(),
-    description: z.string().min(1, {
+    equipment_id: z.any(),
+    content: z.string().min(1, {
       message: 'Description must be at least 10 characters.',
     }),
   });
@@ -53,10 +51,9 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      room: '',
-      type: undefined,
-      idEquipment: '',
-      description: '',
+      room_id: '',
+      equipment_id: '',
+      content: '',
     },
   });
 
@@ -84,12 +81,13 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
           );
 
           const reportData = res.data.data;
+          console.log(reportData);
+          
 
           form.reset({
-            room: String(reportData.room.id),
-            type: reportData.equipment_type,
-            idEquipment: reportData.equipment_id,
-            description: reportData.description,
+            room_id: String(reportData.room.id),
+            equipment_id: reportData.equipment_id,
+            content: reportData.content,
           });
         } catch (error) {
           console.error('Error fetching equipment:', error);
@@ -109,10 +107,9 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
             `/api/v1/report/create`,
             {
               user_id: user.id,
-              room_id: parseInt(data.room),
-              equipment_id: data.idEquipment,
-              equipment_type: data.type,
-              description: data.description,
+              room_id: parseInt(data.room_id),
+              equipment_id: parseInt(data.equipment_id),
+              content: data.content,
               status: 'pending',
             },
             {
@@ -133,10 +130,9 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
             `/api/v1/report/update/${params.reportId}`,
             {
               user_id: user.id,
-              room_id: parseInt(data.room),
-              equipment_id: data.idEquipment,
-              equipment_type: data.type,
-              description: data.description,
+              room_id: parseInt(data.room_id),
+              equipment_id: parseInt(data.equipment_id),
+              content: data.content,
               status: 'pending',
             },
             {
@@ -155,13 +151,15 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
     } catch (error) {
       console.error('Error:', error);
     }
+
+    console.log(data);
   }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="room"
+          name="room_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Room</FormLabel>
@@ -179,7 +177,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
                   {rooms.map((item: any, index: any) => {
                     return (
                       <SelectItem key={index} value={String(item.id)}>
-                        {item.room_name}
+                        {item.name}
                       </SelectItem>
                     );
                   })}
@@ -193,45 +191,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
 
         <FormField
           control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Type</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="computer" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Computer</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="tandch" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Table & Chair</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="aircondition" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Air condition</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="idEquipment"
+          name="equipment_id"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Id Equipment</FormLabel>
@@ -245,7 +205,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
 
         <FormField
           control={form.control}
-          name="description"
+          name="content"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>

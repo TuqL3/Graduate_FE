@@ -30,42 +30,36 @@ import { useAppSelector } from '@/lib/redux/hooks';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
-const CreateRoom = ({ params }: { params: { roomId: string } }) => {
+const CreateRoom = ({ params }: { params: { permissionId: string } }) => {
   const token = useAppSelector((state: any) => state.auth.token);
   const route = useRouter();
 
-
   const FormSchema = z.object({
-    name: z.string().min(1, {
-      message: 'Please enter room name.',
-    }),
-    status: z.string().min(1, {
-      message: 'Please enter room name.',
+    permission_name: z.string().min(1, {
+      message: 'Please enter permission name.',
     }),
   });
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: '',
-      status: "",
+      permission_name: '',
     },
   });
 
   useEffect(() => {
     const fetchRoomData = async () => {
-      if (params.roomId !== 'new') {
+      if (params.permissionId !== 'new') {
         try {
-          const res = await newRequest.get(`/api/v1/room/${params.roomId}`, {
+          const res = await newRequest.get(`/api/v1/permission/${params.permissionId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
 
-          const roomData = res.data.data;
+          const permissionData = res.data.data;
 
           form.reset({
-            name: roomData.name,
-            status: roomData.status,
+            permission_name: permissionData.permission_name,
           });
         } catch (error) {
           console.error('Error fetching equipment:', error);
@@ -74,17 +68,16 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
     };
 
     fetchRoomData();
-  }, [params.roomId, token, form]);
+  }, [params.permissionId, token, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
-      if (params.roomId === 'new') {
+      if (params.permissionId === 'new') {
         try {
           const response = await newRequest.post(
-            `/api/v1/room/create`,
+            `/api/v1/permission/create`,
             {
-              name: data.name,
-              status: data.status,
+              permission_name: data.permission_name,
             },
             {
               headers: {
@@ -92,19 +85,18 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
               },
             },
           );
-          toast.success(`Create room success`);
-          route.push('/rooms');
+          toast.success(`Create permission success`);
+          route.push('/permission');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/rooms');
+          route.push('/permission');
         }
       } else {
         try {
           const response = await newRequest.put(
-            `/api/v1/room/update/${params.roomId}`,
+            `/api/v1/permission/update/${params.permissionId}`,
             {
-              name: data.name,
-              status: data.status,
+              permission_name: data.permission_name,
             },
             {
               headers: {
@@ -112,74 +104,34 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
               },
             },
           );
-          toast.success(`Update room success`);
-          route.push('/rooms');
+          toast.success(`Update permission success`);
+          route.push('/permission');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/rooms');
+          route.push('/permission');
         }
       }
     } catch (error) {
       console.error('Error:', error);
     }
-
-    console.log(data);
-    
   }
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
-          name="name"
+          name="permission_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Room name</FormLabel>
+              <FormLabel>Permission name</FormLabel>
               <FormControl>
-                <Input placeholder="Room name" {...field} />
+                <Input placeholder="Permission name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>Status</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="maintenance" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Maintenance</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="in_use" />
-                    </FormControl>
-                    <FormLabel className="font-normal">In use</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="available" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Available</FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <Button type="submit">Submit</Button>
       </form>
     </Form>

@@ -12,6 +12,8 @@ import { useState, useEffect } from 'react';
 export default function DemoPage() {
   const token = useAppSelector((state: any) => state.auth.token);
   const [data, setData] = useState<Report[]>([]);
+  console.log(data);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {

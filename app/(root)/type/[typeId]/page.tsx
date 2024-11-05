@@ -30,13 +30,13 @@ import { useAppSelector } from '@/lib/redux/hooks';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
-const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
+const CreateRoom = ({ params }: { params: { typeId: string } }) => {
   const token = useAppSelector((state: any) => state.auth.token);
   const route = useRouter();
 
   const FormSchema = z.object({
     name: z.string().min(1, {
-      message: 'Please enter name.',
+      message: 'Please enter equipmenttype name.',
     }),
   });
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -48,10 +48,10 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
 
   useEffect(() => {
     const fetchRoomData = async () => {
-      if (params.categoryId !== 'new') {
+      if (params.typeId !== 'new') {
         try {
           const res = await newRequest.get(
-            `/api/v1/category/${params.categoryId}`,
+            `/api/v1/equipmenttype/${params.typeId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -59,10 +59,10 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
             },
           );
 
-          const categoryData = res.data.data;
+          const permissionData = res.data.data;
 
           form.reset({
-            name: categoryData.name,
+            name: permissionData.name,
           });
         } catch (error) {
           console.error('Error fetching equipment:', error);
@@ -71,14 +71,14 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
     };
 
     fetchRoomData();
-  }, [params.categoryId, token, form]);
+  }, [params.typeId, token, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
-      if (params.categoryId === 'new') {
+      if (params.typeId === 'new') {
         try {
           const response = await newRequest.post(
-            `/api/v1/category/create`,
+            `/api/v1/equipmenttype/create`,
             {
               name: data.name,
             },
@@ -88,16 +88,16 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
               },
             },
           );
-          toast.success(`Create category success`);
-          route.push('/category');
+          toast.success(`Create type success`);
+          route.push('/type');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/category');
+          route.push('/type');
         }
       } else {
         try {
           const response = await newRequest.put(
-            `/api/v1/category/update/${params.categoryId}`,
+            `/api/v1/equipmenttype/update/${params.typeId}`,
             {
               name: data.name,
             },
@@ -107,11 +107,11 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
               },
             },
           );
-          toast.success(`Update category success`);
-          route.push('/category');
+          toast.success(`Update type success`);
+          route.push('/type');
         } catch (error) {
           toast.error('Something went wrong');
-          route.push('/category');
+          route.push('/type');
         }
       }
     } catch (error) {
@@ -128,9 +128,9 @@ const CreateRoom = ({ params }: { params: { categoryId: string } }) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category name</FormLabel>
+              <FormLabel>Type</FormLabel>
               <FormControl>
-                <Input placeholder="Category name" {...field} />
+                <Input placeholder="Type" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
