@@ -4,6 +4,7 @@ import moment from 'moment';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface EventFormProps {
   newEvent: {
@@ -41,6 +42,19 @@ const EventForm: React.FC<EventFormProps> = ({
   const [users, setUsers] = useState([]);
   const [rooms, setRooms] = useState([]);
   const token = useAppSelector((state: any) => state.auth.token);
+  const router = useRouter();
+
+  const transformToEvents = (apiData: any) => {
+    return {
+      id: apiData.id,
+      title: apiData.title,
+      description: apiData.description,
+      location: apiData.room.id,
+      participants: apiData.user.id,
+      start: new Date(apiData.start_time),
+      end: new Date(apiData.end_time),
+    };
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -65,7 +79,6 @@ const EventForm: React.FC<EventFormProps> = ({
     fetchRoom();
   }, [token]);
 
-  // Handle update event
   const handleUpdate = async () => {
     try {
       const res = await newRequest.put(
@@ -85,17 +98,13 @@ const EventForm: React.FC<EventFormProps> = ({
         },
       );
 
-      // Update the events array with the modified event
-      if (Array.isArray(events)) {
-        const updatedEvents = [...events];
-        const eventIndex = updatedEvents.findIndex(
-          (event) => event.id === newEvent.id,
-        );
-        if (eventIndex !== -1) {
-          updatedEvents[eventIndex] = res.data.data;
-          setEvents(updatedEvents);
-        }
-      }
+      const updatedEvent = transformToEvents(res.data.data);
+
+
+      const updatedEvents = events.map((event) =>
+        event.id === updatedEvent.id ? updatedEvent : event,
+      );
+      setEvents(updatedEvents);
 
       toast.success('Update successfully');
       setShowEventForm(false);
@@ -105,7 +114,6 @@ const EventForm: React.FC<EventFormProps> = ({
     }
   };
 
-  // Handle delete event
   const handleDelete = async () => {
     try {
       if (newEvent.id) {
@@ -115,13 +123,10 @@ const EventForm: React.FC<EventFormProps> = ({
           },
         });
 
-        // Remove the deleted event from the events array
-        if (Array.isArray(events)) {
-          const updatedEvents = events.filter(
-            (event) => event.id !== newEvent.id,
-          );
-          setEvents(updatedEvents);
-        }
+        const updatedEvents = events.filter(
+          (event) => event.id !== newEvent.id,
+        );
+        setEvents(updatedEvents);
 
         toast.success('Delete successfully');
         setShowEventForm(false);
