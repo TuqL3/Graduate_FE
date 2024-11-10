@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import { FiSettings, FiShare2, FiAlertCircle } from 'react-icons/fi';
@@ -16,6 +16,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { newRequest } from '@/lib/newRequest';
 
 ChartJS.register(
   CategoryScale,
@@ -41,29 +42,25 @@ const Dashboard = () => {
 
   const [theme, setTheme] = useState('light');
   const [error, setError] = useState(null);
+  const [dummyData, setDummyData] = useState([]);
+  const [countScheduleRoom, setCountScheduleRoom] = useState([]);
 
-  const dummyData = [
-    { room: 'Phòng A', count: 5 },
-    { room: 'Phòng B', count: 15 },
-    { room: 'Phòng C', count: 10 },
-    { room: 'Phòng D', count: 20 },
-    { room: 'Phòng E', count: 8 },
-    { room: 'Phòng F', count: 12 },
-    { room: 'Phòng G', count: 7 },
-    { room: 'Phòng H', count: 13 },
-    { room: 'Phòng I', count: 18 },
-    { room: 'Phòng J', count: 9 },
-    { room: 'Phòng K', count: 14 },
-    { room: 'Phòng L', count: 11 },
-    { room: 'Phòng M', count: 6 },
-    { room: 'Phòng N', count: 17 },
-    { room: 'Phòng O', count: 16 },
-    { room: 'Phòng P', count: 10 },
-    { room: 'Phòng Q', count: 19 },
-    { room: 'Phòng R', count: 21 },
-    { room: 'Phòng S', count: 22 },
-    { room: 'Phòng T', count: 23 },
-  ];
+  useEffect(() => {
+    const getReportCountRoom = async () => {
+      const res = await newRequest.get('/api/v1/report/getCountReportOfRoom');
+      setDummyData(res.data.data);
+    };
+
+    const getCountScheduleOfRoom = async () => {
+      const res = await newRequest.get('/api/v1/schedule/countScheduleRoom');
+      setCountScheduleRoom(res.data.data);
+    };
+
+    getReportCountRoom();
+    getCountScheduleOfRoom();
+  }, []);
+
+  console.log(countScheduleRoom);
 
   const dummyPieData = [
     { status: 'Broken', count: 30 },
@@ -108,11 +105,11 @@ const Dashboard = () => {
   };
 
   const roomUsageData = {
-    labels: dummyData.map((item) => item.room),
+    labels: countScheduleRoom.map((item) => item.room),
     datasets: [
       {
         label: 'Tần suất phòng được sử dụng',
-        data: dummyData.map((item) => item.count),
+        data: countScheduleRoom.map((item) => item.count),
         backgroundColor:
           theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },
