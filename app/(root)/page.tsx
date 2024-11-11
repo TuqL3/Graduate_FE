@@ -42,8 +42,16 @@ const Dashboard = () => {
 
   const [theme, setTheme] = useState('light');
   const [error, setError] = useState(null);
-  const [dummyData, setDummyData] = useState([]);
-  const [countScheduleRoom, setCountScheduleRoom] = useState([]);
+  const [dummyData, setDummyData] = useState([
+    {room: "phong 1", count: 1},
+    {room: "phong 2", count: 2},
+    {room: "phong 3", count: 3},
+  ]);
+  const [countScheduleRoom, setCountScheduleRoom] = useState([
+    {room: "phong 1", count: 1},
+    {room: "phong 2", count: 3},
+    {room: "phong 3", count: 2},
+  ]);
 
   useEffect(() => {
     const getReportCountRoom = async () => {
@@ -89,11 +97,11 @@ const Dashboard = () => {
   };
 
   const transformedLineData = {
-    labels: dummyData.map((item) => item.room),
+    labels: dummyData?.map((item) => item.room),
     datasets: [
       {
         label: 'Số lượng báo cáo 2023',
-        data: dummyData.map((item) => item.count),
+        data: dummyData?.map((item) => item.count),
         borderColor: theme === 'dark' ? '#f4a261' : 'rgb(75, 192, 192)',
         backgroundColor:
           theme === 'dark'
@@ -105,11 +113,11 @@ const Dashboard = () => {
   };
 
   const roomUsageData = {
-    labels: countScheduleRoom.map((item) => item.room),
+    labels: countScheduleRoom?.map((item) => item.room),
     datasets: [
       {
         label: 'Tần suất phòng được sử dụng',
-        data: countScheduleRoom.map((item) => item.count),
+        data: countScheduleRoom?.map((item) => item.count),
         backgroundColor:
           theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },

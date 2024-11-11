@@ -9,8 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@bryntum/calendar": "npm:@bryntum/calendar-trial@^6.1.2",
-    "@bryntum/calendar-react": "^6.1.2",
     "@hookform/resolvers": "^3.9.0",
     "@progress/kendo-data-query": "latest",
     "@progress/kendo-date-math": "latest",
