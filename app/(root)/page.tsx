@@ -3,7 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Line, Bar, Pie } from 'react-chartjs-2';
-import { FiSettings, FiShare2, FiAlertCircle } from 'react-icons/fi';
+import {
+  FiSettings,
+  FiShare2,
+  FiAlertCircle,
+  FiBarChart2,
+  FiPieChart,
+  FiTrendingUp,
+  FiUser,
+} from 'react-icons/fi';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,27 +39,34 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+  const dummyMetrics = [
+    { title: 'Total Room', value: '$54,321', icon: <FiTrendingUp /> },
+    { title: 'Active Users', value: '1,234', icon: <FiUser /> },
+    { title: 'Total Report', value: '$12,345', icon: <FiBarChart2 /> },
+    { title: 'Total Equipment', value: '12.3%', icon: <FiPieChart /> },
+  ];
+
   const [widgets, setWidgets] = useState([
     { id: 'reports', type: 'line', title: 'Số lượng báo cáo của các phòng' },
     { id: 'roomUsage', type: 'bar', title: 'Tần suất phòng được sử dụng' },
-    { id: 'revenue', type: 'bar', title: 'Revenue Breakdown' },
-    { id: 'distribution', type: 'pie', title: 'Market Distribution' },
-    { id: 'activity', type: 'table', title: 'Recent Activities' },
+    { id: 'distribution', type: 'pie', title: 'Trạng thái thiết bị' },
     { id: 'userUsage', type: 'bar', title: 'Tần suất người sử dụng' },
   ]);
 
   const [theme, setTheme] = useState('light');
   const [error, setError] = useState(null);
   const [dummyData, setDummyData] = useState([
-    {room: "phong 1", count: 1},
-    {room: "phong 2", count: 2},
-    {room: "phong 3", count: 3},
+    { room: 'phong 1', count: 1 },
+    { room: 'phong 2', count: 2 },
+    { room: 'phong 3', count: 3 },
   ]);
   const [countScheduleRoom, setCountScheduleRoom] = useState([
-    {room: "phong 1", count: 1},
-    {room: "phong 2", count: 3},
-    {room: "phong 3", count: 2},
+    { room: 'phong 1', count: 1 },
+    { room: 'phong 2', count: 3 },
+    { room: 'phong 3', count: 2 },
   ]);
+  const [countScheduleUser, setCountScheduleUser] = useState([]);
+  const [countStatus, setCountStatus] = useState([]);
 
   useEffect(() => {
     const getReportCountRoom = async () => {
@@ -64,11 +79,21 @@ const Dashboard = () => {
       setCountScheduleRoom(res.data.data);
     };
 
+    const getCountScheduleOfUser = async () => {
+      const res = await newRequest.get('/api/v1/schedule/countScheduleUser');
+      setCountScheduleUser(res.data.data);
+    };
+
+    const getCountStatus = async () => {
+      const res = await newRequest.get('/api/v1/equipment/equipmentstatus');
+      setCountStatus(res.data.data);
+    };
+
+    getCountStatus();
     getReportCountRoom();
+    getCountScheduleOfUser();
     getCountScheduleOfRoom();
   }, []);
-
-  console.log(countScheduleRoom);
 
   const dummyPieData = [
     { status: 'Broken', count: 30 },
@@ -85,11 +110,11 @@ const Dashboard = () => {
   ];
 
   const userUsageBarData = {
-    labels: userUsageData.map((item) => item.name), // Tên người sử dụng làm nhãn
+    labels: countScheduleUser.map((item: any) => item.name),
     datasets: [
       {
         label: 'Tần suất người sử dụng',
-        data: userUsageData.map((item) => item.count), // Dữ liệu là số lượng người sử dụng
+        data: countScheduleUser.map((item: any) => item.count),
         backgroundColor:
           theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },
@@ -124,36 +149,18 @@ const Dashboard = () => {
     ],
   };
 
-  const dummyBarData = {
-    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-    datasets: [
-      {
-        label: 'Revenue',
-        data: [12000, 19000, 15000, 25000],
-        backgroundColor:
-          theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
-      },
-    ],
-  };
-
   const equipmentUsageData = {
-    labels: dummyPieData.map((item) => item.status),
+    labels: countStatus.map((item: any) => item.status),
     datasets: [
       {
         label: 'Tình trạng thiết bị',
-        data: dummyPieData.map((item) => item.count),
+        data: countStatus.map((item: any) => item.count),
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
       },
     ],
   };
 
-  const recentActivities = [
-    { id: 1, action: 'New sale recorded', time: '2 minutes ago' },
-    { id: 2, action: 'Customer feedback received', time: '10 minutes ago' },
-    { id: 3, action: 'System update completed', time: '1 hour ago' },
-  ];
-
-  const handleDragEnd = (result) => {
+  const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
     const items = Array.from(widgets);
@@ -171,7 +178,19 @@ const Dashboard = () => {
     console.log('Sharing dashboard...');
   };
 
-  const renderWidget = (widget) => {
+  const pieOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        enabled: true,
+      },
+    },
+    maintainAspectRatio: false,
+  };
+  const renderWidget = (widget: any) => {
     switch (widget.type) {
       case 'line':
         return (
@@ -184,71 +203,49 @@ const Dashboard = () => {
         if (widget.id === 'userUsage') {
           return <Bar data={userUsageBarData} options={{ responsive: true }} />;
         }
-        return <Bar data={dummyBarData} options={{ responsive: true }} />;
+      // return <Bar data={dummyBarData} options={{ responsive: true }} />;
       case 'pie':
-        return <Pie data={equipmentUsageData} options={{ responsive: true }} />;
-      case 'table':
         return (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-lg">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Action</th>
-                  <th className="px-4 py-2">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentActivities.map((activity) => (
-                  <tr key={activity.id}>
-                    <td className="border px-4 py-2">{activity.action}</td>
-                    <td className="border px-4 py-2">{activity.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex mt-10 h-80 w-full">
+            <Pie data={equipmentUsageData} options={pieOptions} />
           </div>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <div
-      className={`${
-        theme === 'dark'
-          ? 'bg-gray-900 text-white'
-          : 'bg-gray-100 text-gray-900'
-      } min-h-screen p-4`}
-    >
+    <div>
       {error && (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-          role="alert"
-        >
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
           <FiAlertCircle className="inline mr-2" />
           {error}
         </div>
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-        <div className="flex space-x-4">
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white"
-            aria-label="Toggle theme"
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
+          Analytics Dashboard
+        </h1>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {dummyMetrics.map((metric, index) => (
+          <div
+            key={index}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex items-center justify-between"
           >
-            <FiSettings className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleShare}
-            className="p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white"
-            aria-label="Share dashboard"
-          >
-            <FiShare2 className="w-5 h-5" />
-          </button>
-        </div>
+            <div>
+              <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                {metric.title}
+              </h3>
+              <p className="text-2xl font-semibold mt-1">{metric.value}</p>
+            </div>
+            <div className="text-purple-500 text-2xl">{metric.icon}</div>
+          </div>
+        ))}
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -257,7 +254,7 @@ const Dashboard = () => {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"
             >
               {widgets.map((widget, index) => (
                 <Draggable
@@ -270,9 +267,9 @@ const Dashboard = () => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="bg-white rounded-lg shadow-md p-4"
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 transition-all duration-200"
                     >
-                      <h2 className="text-lg font-semibold mb-4">
+                      <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                         {widget.title}
                       </h2>
                       {renderWidget(widget)}
