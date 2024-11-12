@@ -8,15 +8,9 @@ import SearchForm from '@/components/Header/SearchForm';
 const Header = () => {
   return (
     <header className="sticky top-0 z-999 flex w-full border-b border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark">
-      <div className="flex flex-grow items-center justify-between px-4 py-5 shadow-2 md:px-5 2xl:px-10">
+      <div className="flex flex-grow items-center justify-between py-3 shadow-2 md:px-5 2xl:px-10">
         <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
-          {/* <!-- Hamburger Toggle BTN --> */}
           <button
-            // aria-controls="sidebar"
-            // onClick={(e) => {
-            //   e.stopPropagation();
-            //   props.setSidebarOpen(!props.sidebarOpen);
-            // }}
             className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-dark-3 dark:bg-dark-2 lg:hidden"
           >
             <span className="relative block h-5.5 w-5.5 cursor-pointer">
@@ -41,7 +35,6 @@ const Header = () => {
               </span>
             </span>
           </button>
-          {/* <!-- Hamburger Toggle BTN --> */}
 
           <Link className="block flex-shrink-0 lg:hidden" href="/">
             <Image
@@ -55,7 +48,7 @@ const Header = () => {
 
         <div className="hidden xl:block">
           <div>
-            <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
+            <h1 className="mb-0.5 font-semibold text-dark dark:text-white">
               Lab center
             </h1>
             <p className="font-medium">Practical laboratory center</p>

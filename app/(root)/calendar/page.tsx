@@ -93,16 +93,13 @@ const CalendarSchedule = () => {
     setIsModify(true);
   };
 
-  // Function to handle dropping an event (drag and drop functionality)
   const handleEventDrop = async ({ event, start, end, isAllDay }) => {
     try {
-      // Nếu sự kiện được kéo vào "All Day", đặt thời gian bắt đầu và kết thúc thành đầu ngày và cuối ngày
       if (isAllDay) {
-        start.setHours(0, 0, 0, 0); // Đặt thời gian bắt đầu thành 00:00:00
-        end.setHours(23, 59, 59, 999); // Đặt thời gian kết thúc thành 23:59:59
+        start.setHours(0, 0, 0, 0); 
+        end.setHours(23, 59, 59, 999); 
       }
 
-      // Update the event in the backend
       await newRequest.put(
         `/api/v1/schedule/update/${event.id}`,
         {
@@ -120,7 +117,6 @@ const CalendarSchedule = () => {
         },
       );
 
-      // Update the event in the local state
       const updatedEvents = events.map((ev) =>
         ev.id === event.id ? { ...ev, start, end } : ev,
       );
@@ -130,16 +126,13 @@ const CalendarSchedule = () => {
     }
   };
 
-  // Function to handle resizing an event
   const handleEventResize = async ({ event, start, end }) => {
     try {
-      // Nếu sự kiện được kéo vào "All Day", đặt thời gian bắt đầu và kết thúc thành đầu ngày và cuối ngày
       if (event.allDay) {
-        start.setHours(0, 0, 0, 0); // Đặt thời gian bắt đầu thành 00:00:00
-        end.setHours(23, 59, 59, 999); // Đặt thời gian kết thúc thành 23:59:59
+        start.setHours(0, 0, 0, 0); 
+        end.setHours(23, 59, 59, 999); 
       }
 
-      // Update the event in the backend
       await newRequest.put(
         `/api/v1/schedule/update/${event.id}`,
         {
@@ -157,7 +150,6 @@ const CalendarSchedule = () => {
         },
       );
 
-      // Update the event in the local state
       const updatedEvents = events.map((ev) =>
         ev.id === event.id ? { ...ev, start, end } : ev,
       );

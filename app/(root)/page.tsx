@@ -39,12 +39,7 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  const dummyMetrics = [
-    { title: 'Total Room', value: '$54,321', icon: <FiTrendingUp /> },
-    { title: 'Active Users', value: '1,234', icon: <FiUser /> },
-    { title: 'Total Report', value: '$12,345', icon: <FiBarChart2 /> },
-    { title: 'Total Equipment', value: '12.3%', icon: <FiPieChart /> },
-  ];
+  
 
   const [widgets, setWidgets] = useState([
     { id: 'reports', type: 'line', title: 'Số lượng báo cáo của các phòng' },
@@ -65,8 +60,30 @@ const Dashboard = () => {
     { room: 'phong 2', count: 3 },
     { room: 'phong 3', count: 2 },
   ]);
-  const [countScheduleUser, setCountScheduleUser] = useState([]);
-  const [countStatus, setCountStatus] = useState([]);
+  const [countScheduleUser, setCountScheduleUser] = useState([
+    { name: 'Nguyễn Văn A', count: 3 },
+    { name: 'Trần Thị B', count: 5 },
+    { name: 'Lê Văn C', count: 2 },
+    { name: 'Phạm Thị D', count: 7 },
+    { name: 'Ngô Văn E', count: 4 },
+  ]);
+  const [countStatus, setCountStatus] = useState([
+    { status: 'Broken', count: 30 },
+    { status: 'Working', count: 40 },
+    { status: 'Maintain', count: 30 },
+  ]);
+
+  const [countRoom, setCountRoom] = useState()
+  const [countReport, setCountReport] = useState()
+  const [countUser, setCountUser] = useState()
+  const [countEquipment, setCountEquipment] = useState()
+
+  const dummyMetrics = [
+    { title: 'Total Room', value: countRoom, icon: <FiTrendingUp /> },
+    { title: 'Active Users', value: countUser, icon: <FiUser /> },
+    { title: 'Total Report', value: countReport, icon: <FiBarChart2 /> },
+    { title: 'Total Equipment', value: countEquipment, icon: <FiPieChart /> },
+  ];
 
   useEffect(() => {
     const getReportCountRoom = async () => {
@@ -89,32 +106,39 @@ const Dashboard = () => {
       setCountStatus(res.data.data);
     };
 
+    const getCountUser = async () => {
+      const res = await newRequest.get("/api/v1/user/getcountuser")
+      setCountUser(res.data.data)
+    }
+
+    const getCountRoom = async () => {
+      const res = await newRequest.get("/api/v1/room/getcountroom")
+      setCountRoom(res.data.data)
+    }
+    const getCountReport = async () => {
+      const res = await newRequest.get("/api/v1/report/getCountReport")
+      setCountReport(res.data.data)
+    }
+    const getCountEquipment = async () => {
+      const res = await newRequest.get("/api/v1/equipment/getCountEquipment")
+      setCountEquipment(res.data.data)
+    }
+    getCountUser()
+    getCountReport()
+    getCountRoom()
+    getCountEquipment()
     getCountStatus();
     getReportCountRoom();
     getCountScheduleOfUser();
     getCountScheduleOfRoom();
   }, []);
 
-  const dummyPieData = [
-    { status: 'Broken', count: 30 },
-    { status: 'Working', count: 40 },
-    { status: 'Maintain', count: 30 },
-  ];
-
-  const userUsageData = [
-    { name: 'Nguyễn Văn A', count: 3 },
-    { name: 'Trần Thị B', count: 5 },
-    { name: 'Lê Văn C', count: 2 },
-    { name: 'Phạm Thị D', count: 7 },
-    { name: 'Ngô Văn E', count: 4 },
-  ];
-
   const userUsageBarData = {
-    labels: countScheduleUser.map((item: any) => item.name),
+    labels: countScheduleUser?.map((item: any) => item.name),
     datasets: [
       {
         label: 'Tần suất người sử dụng',
-        data: countScheduleUser.map((item: any) => item.count),
+        data: countScheduleUser?.map((item: any) => item.count),
         backgroundColor:
           theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },
@@ -150,11 +174,11 @@ const Dashboard = () => {
   };
 
   const equipmentUsageData = {
-    labels: countStatus.map((item: any) => item.status),
+    labels: countStatus?.map((item: any) => item.status),
     datasets: [
       {
         label: 'Tình trạng thiết bị',
-        data: countStatus.map((item: any) => item.count),
+        data: countStatus?.map((item: any) => item.count),
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
       },
     ],
@@ -170,14 +194,7 @@ const Dashboard = () => {
     setWidgets(items);
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
-
-  const handleShare = () => {
-    console.log('Sharing dashboard...');
-  };
-
+ 
   const pieOptions = {
     responsive: true,
     plugins: {
