@@ -16,17 +16,18 @@ const DropdownUser = () => {
   return (
     <div onClick={() => setDropdownOpen(false)} className="relative">
       <Link onClick={toggleDropdown} className="flex items-center gap-4" href="#">
-        {/* <span className="h-12 w-12 rounded-full">
-          <Image
-            width={112}
-            height={112}
-            src={user?.avatar || "/images/user/user-03.png"}  // Tận dụng avatar từ Redux nếu có
-            alt="User"
-            className="overflow-hidden rounded-full"
-          />
-        </span> */}
+        <span className="h-12 w-12 rounded-full">
+        <Image
+          width={100}
+          height={100}
+          src={user?.image_url || "https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg"} 
+          alt="User"
+          className="overflow-hidden rounded-full"
+        />
+
+        </span>
         <span className="flex items-center gap-2 font-medium text-dark dark:text-dark-6">
-          <span className="hidden lg:block">{user?.full_name || "Guest User"}</span>
+          {/* <span className="hidden lg:block">{user?.full_name || "Guest User"}</span> */}
           <svg
             className={`fill-current duration-200 ease-in ${dropdownOpen ? 'rotate-180' : ''}`}
             width="20"
@@ -45,12 +46,12 @@ const DropdownUser = () => {
 
       {dropdownOpen && (
         <div className="absolute right-0 mt-7.5 flex w-[280px] flex-col rounded-lg border-[0.5px] border-stroke bg-white shadow-default dark:border-dark-3 dark:bg-gray-dark">
-          <div className="flex items-center gap-2.5 px-5 pb-5.5 pt-3.5">
+          <div className="flex items-center gap-2.5 px-3 pb-5.5 pt-3.5">
             <span className="relative block h-12 w-12 rounded-full">
               <Image
                 width={112}
                 height={112}
-                src={user?.avatar || "/images/user/user-03.png"}
+                src={user?.image_url || "https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg"} 
                 alt="User"
                 className="overflow-hidden rounded-full"
               />
@@ -108,7 +109,7 @@ const DropdownUser = () => {
                   stroke="currentColor" 
                   stroke-width="2" 
                   stroke-linecap="round" 
-                  stroke-linejoin="round" 
+                  strokeLinejoin="round" 
                 >
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                     <polyline points="16 17 21 12 16 7"/>
