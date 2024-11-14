@@ -42,7 +42,7 @@ export function SelectRoom() {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const res = await newRequest.get('api/v1/room/');
+        const res = await newRequest.get('api/v1/room');
         setRooms(res.data.data);
       } catch (error) {
         console.log(error);
@@ -54,7 +54,7 @@ export function SelectRoom() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
         <FormField
           control={form.control}
           name="room"

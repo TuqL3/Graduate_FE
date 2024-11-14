@@ -261,7 +261,7 @@ const CalendarSchedule = () => {
         onView={setView}
         date={date}
         onNavigate={setDate}
-        className="shadow-lg rounded-lg bg-white"
+        className="shadow-lg rounded-lg bg-white mt-4"
         tooltipAccessor={(event) => `${event.title}\n${event.description}`}
       />
       {showEventForm && (
