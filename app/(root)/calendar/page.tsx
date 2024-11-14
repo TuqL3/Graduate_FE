@@ -10,6 +10,7 @@ import { SearchBar } from '../components/searchBar';
 import EventForm from '../components/eventForm';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
+import { SelectRoom } from '../components/roomSelect';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -62,6 +63,16 @@ const CalendarSchedule = () => {
       }
     };
 
+    const fetchRoom = async () => {
+      try {
+        const res = await newRequest.get('api/v1/room/');
+        setRooms(res.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchRoom();
     fetchData();
   }, [token]);
 
@@ -96,8 +107,8 @@ const CalendarSchedule = () => {
   const handleEventDrop = async ({ event, start, end, isAllDay }) => {
     try {
       if (isAllDay) {
-        start.setHours(0, 0, 0, 0); 
-        end.setHours(23, 59, 59, 999); 
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
       }
 
       await newRequest.put(
@@ -129,8 +140,8 @@ const CalendarSchedule = () => {
   const handleEventResize = async ({ event, start, end }) => {
     try {
       if (event.allDay) {
-        start.setHours(0, 0, 0, 0); 
-        end.setHours(23, 59, 59, 999); 
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
       }
 
       await newRequest.put(
@@ -230,6 +241,8 @@ const CalendarSchedule = () => {
       <div className="mb-6 flex justify-between items-center space-x-4">
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </div>
+
+      <SelectRoom />
 
       <DnDCalendar
         localizer={localizer}

@@ -1,9 +1,19 @@
-"use client";
-import { newRequest } from "@/lib/newRequest";
-import { useAppSelector } from "@/lib/redux/hooks";
-import React, { useState } from "react";
-import { FaGithub, FaTwitter, FaLinkedin, FaEdit, FaCheck, FaTimes, FaFacebook, FaInstagram } from "react-icons/fa";
-import { Tooltip } from "react-tooltip";
+'use client';
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import {
+  FaGithub,
+  FaTwitter,
+  FaLinkedin,
+  FaEdit,
+  FaCheck,
+  FaTimes,
+  FaFacebook,
+  FaInstagram,
+} from 'react-icons/fa';
+import { Tooltip } from 'react-tooltip';
 
 interface UpdateUserResponse {
   success: boolean;
@@ -45,16 +55,16 @@ const ProfilePage = () => {
   const user = useAppSelector((state) => state.auth.user);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
-    full_name: user?.full_name || "",
-    email: user?.email || "",
-    bio: user?.bio || "",
-    phone: user?.phone || "",
-    profilePicture: user?.image_url || "",
+    full_name: user?.full_name || '',
+    email: user?.email || '',
+    bio: user?.bio || '',
+    phone: user?.phone || '',
+    profilePicture: user?.image_url || '',
     socialLinks: {
-      github: user?.github || "",
-      facebook: user?.facebook || "",
-      instagram: user?.instagram || ""
-    }
+      github: user?.github || '',
+      facebook: user?.facebook || '',
+      instagram: user?.instagram || '',
+    },
   });
 
   const [editedData, setEditedData] = useState<ProfileData>(profileData);
@@ -68,50 +78,52 @@ const ProfilePage = () => {
   const handleSave = async () => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!editedData.email) {
-      alert("Email is required.");
+      alert('Email is required.');
       return;
     }
     if (!emailPattern.test(editedData.email)) {
-      alert("Please enter a valid email address.");
+      alert('Please enter a valid email address.');
       return;
     }
     if (!editedData.full_name) {
-      alert("Full name is required.");
+      alert('Full name is required.');
       return;
     }
 
     try {
       const formData = new FormData();
 
-      formData.append("full_name", editedData.full_name.trim());
-      formData.append("email", editedData.email.toLowerCase().trim());
-      formData.append("bio", editedData.bio?.trim() || "");
-      formData.append("phone", editedData.phone?.trim() || "");
+      formData.append('full_name', editedData.full_name.trim());
+      formData.append('email', editedData.email.toLowerCase().trim());
+      formData.append('bio', editedData.bio?.trim() || '');
+      formData.append('phone', editedData.phone?.trim() || '');
 
-      formData.append("github", editedData.socialLinks.github?.trim() || "");
-      formData.append("facebook", editedData.socialLinks.facebook?.trim() || "");
-      formData.append("instagram", editedData.socialLinks.instagram?.trim() || "");
+      formData.append('github', editedData.socialLinks.github?.trim() || '');
+      formData.append(
+        'facebook',
+        editedData.socialLinks.facebook?.trim() || '',
+      );
+      formData.append(
+        'instagram',
+        editedData.socialLinks.instagram?.trim() || '',
+      );
 
       if (selectedFile) {
-        formData.append("image", selectedFile);
+        formData.append('image', selectedFile);
       }
 
       for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
       }
 
-
-      console.log(formData);
-      
-
       const response = await newRequest.put<UpdateUserResponse>(
         `/api/v1/user/update/${user.id}`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -126,15 +138,16 @@ const ProfilePage = () => {
           socialLinks: {
             github: updatedData.github,
             facebook: updatedData.facebook,
-            instagram: updatedData.instagram
-          }
+            instagram: updatedData.instagram,
+          },
         });
         setIsEditing(false);
+        setEditedData(profileData);
         setSelectedFile(null);
-        alert("Profile updated successfully!");
+        toast.success('Profile updated successfully!');
       }
     } catch (err: any) {
-      console.error("Update failed:", err);
+      console.error('Update failed:', err);
 
       if (err.response?.data) {
         const errorData = err.response.data as ValidationError;
@@ -143,12 +156,16 @@ const ProfilePage = () => {
           const errorMessages = Object.entries(errorData.error)
             .map(([field, message]) => `${field}: ${message}`)
             .join('\n');
-          alert(`Validation Error:\n${errorMessages}`);
+          toast.error(`Validation Error:\n${errorMessages}`);
         } else {
-          alert(errorData.message || "Failed to update profile. Please try again.");
+          toast.error(
+            errorData.message || 'Failed to update profile. Please try again.',
+          );
         }
       } else {
-        alert("An error occurred while updating your profile. Please try again.");
+        toast.error(
+          'An error occurred while updating your profile. Please try again.',
+        );
       }
     }
   };
@@ -159,14 +176,20 @@ const ProfilePage = () => {
     setSelectedFile(null);
   };
 
-  const handleChange = (field: keyof ProfileData | "socialLinks", value: any) => {
-    setEditedData(prev => ({
+  const handleChange = (
+    field: keyof ProfileData | 'socialLinks',
+    value: any,
+  ) => {
+    setEditedData((prev) => ({
       ...prev,
-      [field]: field === "socialLinks" ? { ...prev.socialLinks, ...value } : value
+      [field]:
+        field === 'socialLinks' ? { ...prev.socialLinks, ...value } : value,
     }));
   };
 
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
@@ -174,9 +197,9 @@ const ProfilePage = () => {
       // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
-        setEditedData(prev => ({
+        setEditedData((prev) => ({
           ...prev,
-          profilePicture: reader.result as string
+          profilePicture: reader.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -190,7 +213,7 @@ const ProfilePage = () => {
           <div className="md:w-1/3 p-8 bg-gray-50">
             <div className="relative group">
               <img
-                src={editedData.profilePicture || "/default-avatar.png"}
+                src={editedData.profilePicture || '/default-avatar.png'}
                 alt="Profile"
                 className="w-48 h-48 rounded-full mx-auto object-cover transition-transform duration-300 group-hover:scale-105"
                 data-tooltip-id="profile-picture-tooltip"
@@ -220,29 +243,42 @@ const ProfilePage = () => {
               {Object.entries({
                 github: <FaGithub />,
                 facebook: <FaFacebook />,
-                instagram: <FaInstagram />
-              }).map(([platform, icon]) => (
-                profileData.socialLinks[platform as keyof typeof profileData.socialLinks] && (
-                  <a
-                    key={platform}
-                    href={profileData.socialLinks[platform as keyof typeof profileData.socialLinks]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-gray-900 transition-colors"
-                    data-tooltip-id={`${platform}-tooltip`}
-                    data-tooltip-content={`${platform.charAt(0).toUpperCase() + platform.slice(1)} Profile`}
-                  >
-                    {React.cloneElement(icon as React.ReactElement, { size: 24 })}
-                    <Tooltip id={`${platform}-tooltip`} />
-                  </a>
-                )
-              ))}
+                instagram: <FaInstagram />,
+              }).map(
+                ([platform, icon]) =>
+                  profileData.socialLinks[
+                    platform as keyof typeof profileData.socialLinks
+                  ] && (
+                    <a
+                      key={platform}
+                      href={
+                        profileData.socialLinks[
+                          platform as keyof typeof profileData.socialLinks
+                        ]
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-600 hover:text-gray-900 transition-colors"
+                      data-tooltip-id={`${platform}-tooltip`}
+                      data-tooltip-content={`${
+                        platform.charAt(0).toUpperCase() + platform.slice(1)
+                      } Profile`}
+                    >
+                      {React.cloneElement(icon as React.ReactElement, {
+                        size: 24,
+                      })}
+                      <Tooltip id={`${platform}-tooltip`} />
+                    </a>
+                  ),
+              )}
             </div>
           </div>
 
           <div className="md:w-2/3 p-8">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Profile Information</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Profile Information
+              </h1>
               {!isEditing ? (
                 <button
                   onClick={handleEdit}
@@ -273,7 +309,10 @@ const ProfilePage = () => {
 
             <div className="space-y-6">
               <div>
-                <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="full_name"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Full Name
                 </label>
                 {isEditing ? (
@@ -281,7 +320,7 @@ const ProfilePage = () => {
                     type="text"
                     id="full_name"
                     value={editedData.full_name}
-                    onChange={(e) => handleChange("full_name", e.target.value)}
+                    onChange={(e) => handleChange('full_name', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
@@ -291,7 +330,10 @@ const ProfilePage = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Email
                 </label>
                 {isEditing ? (
@@ -299,7 +341,7 @@ const ProfilePage = () => {
                     type="email"
                     id="email"
                     value={editedData.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
+                    onChange={(e) => handleChange('email', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     required
                   />
@@ -309,7 +351,10 @@ const ProfilePage = () => {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Phone
                 </label>
                 {isEditing ? (
@@ -317,7 +362,7 @@ const ProfilePage = () => {
                     type="tel"
                     id="phone"
                     value={editedData.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
+                    onChange={(e) => handleChange('phone', e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 ) : (
@@ -326,14 +371,17 @@ const ProfilePage = () => {
               </div>
 
               <div>
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="bio"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Bio
                 </label>
                 {isEditing ? (
                   <textarea
                     id="bio"
                     value={editedData.bio}
-                    onChange={(e) => handleChange("bio", e.target.value)}
+                    onChange={(e) => handleChange('bio', e.target.value)}
                     rows={4}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -345,42 +393,61 @@ const ProfilePage = () => {
               {isEditing && (
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="github" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="github"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       GitHub URL
                     </label>
                     <input
                       type="url"
                       id="github"
                       value={editedData.socialLinks.github}
-                      onChange={(e) => handleChange("socialLinks", { github: e.target.value })}
+                      onChange={(e) =>
+                        handleChange('socialLinks', { github: e.target.value })
+                      }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       placeholder="https://github.com/username"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="facebook" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="facebook"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Facebook URL
                     </label>
                     <input
                       type="url"
                       id="facebook"
                       value={editedData.socialLinks.facebook}
-                      onChange={(e) => handleChange("socialLinks", { facebook: e.target.value })}
+                      onChange={(e) =>
+                        handleChange('socialLinks', {
+                          facebook: e.target.value,
+                        })
+                      }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       placeholder="https://facebook.com/username"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="instagram" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="instagram"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Instagram URL
                     </label>
                     <input
                       type="url"
                       id="instagram"
                       value={editedData.socialLinks.instagram}
-                      onChange={(e) => handleChange("socialLinks", { instagram: e.target.value })}
+                      onChange={(e) =>
+                        handleChange('socialLinks', {
+                          instagram: e.target.value,
+                        })
+                      }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       placeholder="https://instagram.com/username"
                     />
