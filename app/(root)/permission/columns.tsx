@@ -16,8 +16,9 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { newRequest } from '@/lib/newRequest';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
+import { refresh } from '@/lib/redux/features/auth/authSlice';
 export type Permission = {
   id: string;
   permission_name: string;
@@ -49,6 +50,7 @@ export const columns: ColumnDef<Permission>[] = [
       const id = row.getValue('id');
       const route = useRouter();
       const token = useAppSelector((state: any) => state.auth.token);
+      const dispatch = useAppDispatch();
 
       const handleDelete = async () => {
         await newRequest.delete(`/api/v1/permission/delete/${id}`, {
@@ -57,7 +59,8 @@ export const columns: ColumnDef<Permission>[] = [
           },
         });
         toast.success('Delete permission success');
-        route.refresh();
+        dispatch(refresh())
+
       };
       return (
         <DropdownMenu>

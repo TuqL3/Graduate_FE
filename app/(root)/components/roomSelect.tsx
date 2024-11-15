@@ -1,15 +1,12 @@
 'use client';
 
-import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,13 +28,43 @@ const FormSchema = z.object({
   }),
 });
 
-export function SelectRoom() {
+interface ISelectRoom {
+  setEvents: (data: any) => void;
+}
+
+const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
+  const router = useRouter();
   const [rooms, setRooms] = useState([]);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {}
+  const pathName = usePathname()
+
+  const transformToEvents = (apiData: any) => {
+    return apiData.data.map((schedule: any) => ({
+      id: schedule.id,
+      title: schedule.title,
+      description: schedule.description,
+      location: schedule.room.id,
+      participants: schedule.user.id,
+      start: new Date(schedule.start_time),
+      end: new Date(schedule.end_time),
+    }));
+  };
+
+  async function onSubmit(roomId: string) {
+    try {
+      router.push(roomId === 'all' ? `${pathName}` : `?roomId=${roomId}`);
+
+      const url = roomId === 'all' ? '/api/v1/schedule' : `/api/v1/schedule?roomId=${roomId}`;
+      const res = await newRequest.get(url);
+      const events = transformToEvents(res.data);
+      setEvents(events);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -48,41 +75,46 @@ export function SelectRoom() {
         console.log(error);
       }
     };
-
     fetchRoom();
   }, []);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
+      <form className="w-full space-y-6">
         <FormField
           control={form.control}
           name="room"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Room</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);  
+                  onSubmit(value);       
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a room to display" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {rooms.map((room: any, index: any) => {
-                    return (
-                      <SelectItem key={index} value={`${room.id}`}>
-                        {room.name}
-                      </SelectItem>
-                    );
-                  })}
+                  <SelectItem value="all">All</SelectItem>
+                  {rooms.map((room: any, index: any) => (
+                    <SelectItem key={index} value={`${room.id}`}>
+                      {room.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
       </form>
     </Form>
   );
-}
+};
+
+export default SelectRoom;

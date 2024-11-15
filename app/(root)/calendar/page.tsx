@@ -10,7 +10,7 @@ import { SearchBar } from '../components/searchBar';
 import EventForm from '../components/eventForm';
 import { newRequest } from '@/lib/newRequest';
 import { useAppSelector } from '@/lib/redux/hooks';
-import { SelectRoom } from '../components/roomSelect';
+import SelectRoom from '../components/roomSelect';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -34,6 +34,7 @@ const CalendarSchedule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const token = useAppSelector((state: any) => state.auth.token);
+  const user = useAppSelector((state: any)=> state.auth.user)
 
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({
@@ -50,7 +51,7 @@ const CalendarSchedule = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await newRequest.get('/api/v1/schedule', {
+        const res = await newRequest.get(`/api/v1/schedule?userId=${user.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -63,16 +64,6 @@ const CalendarSchedule = () => {
       }
     };
 
-    const fetchRoom = async () => {
-      try {
-        const res = await newRequest.get('api/v1/room/');
-        setRooms(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchRoom();
     fetchData();
   }, [token]);
 
@@ -242,7 +233,7 @@ const CalendarSchedule = () => {
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </div>
 
-      <SelectRoom />
+      <SelectRoom setEvents={setEvents} />
 
       <DnDCalendar
         localizer={localizer}

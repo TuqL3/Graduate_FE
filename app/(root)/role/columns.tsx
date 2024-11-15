@@ -16,8 +16,9 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { newRequest } from '@/lib/newRequest';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
+import { refresh } from '@/lib/redux/features/auth/authSlice';
 export type Role = {
   id: string;
   role_name: string;
@@ -61,6 +62,7 @@ export const columns: ColumnDef<Role>[] = [
       const id = row.getValue('id');
       const route = useRouter();
       const token = useAppSelector((state: any) => state.auth.token);
+      const dispatch = useAppDispatch();
 
       const handleDelete = async () => {
         await newRequest.delete(`/api/v1/role/delete/${id}`, {
@@ -69,7 +71,8 @@ export const columns: ColumnDef<Role>[] = [
           },
         });
         toast.success('Delete role success');
-        route.refresh();
+        dispatch(refresh())
+
       };
       return (
         <DropdownMenu>

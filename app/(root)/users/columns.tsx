@@ -15,9 +15,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { newRequest } from '@/lib/newRequest';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { refresh } from '@/lib/redux/features/auth/authSlice';
 export type User = {
   id: string;
   username: string;
@@ -79,6 +80,8 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const id = row.getValue('id');
       const route = useRouter();
+      const dispatch = useAppDispatch();
+      
       const token = useAppSelector((state: any) => state.auth.token);
       const handleDelete = async () => {
         await newRequest.delete(`/api/v1/user/delete/${id}`, {
@@ -87,7 +90,7 @@ export const columns: ColumnDef<User>[] = [
           },
         });
         toast.success('Delete user success');
-        route.push('/users');
+        dispatch(refresh())
       };
       return (
         <DropdownMenu>

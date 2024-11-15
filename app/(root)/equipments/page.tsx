@@ -11,6 +11,7 @@ import { User } from '../users/columns';
 
 export default function DemoPage() {
   const token = useAppSelector((state: any) => state.auth.token);
+  const isRefresh = useAppSelector((state: any)=>state.auth.isRefresh)
   const [data, setData] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -28,7 +29,7 @@ export default function DemoPage() {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, isRefresh]);
 
   return (
     <div className="">

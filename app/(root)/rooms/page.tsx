@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 export default function DemoPage() {
   const token = useAppSelector((state: any) => state.auth.token);
   const [data, setData] = useState<Room[]>([]);
+  const isRefresh = useAppSelector((state: any)=>state.auth.isRefresh)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,7 +29,7 @@ export default function DemoPage() {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, isRefresh]);
 
   return (
     <div className="">

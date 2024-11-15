@@ -2,16 +2,22 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
+import { logout } from '@/lib/redux/features/auth/authSlice';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
 
   const toggleDropdown = (event) => {
     event.stopPropagation(); 
     setDropdownOpen(!dropdownOpen);
   };
+
+  const handleLogout = () => {
+    dispatch(logout())
+  }
 
   return (
     <div onClick={() => setDropdownOpen(false)} className="relative">
@@ -22,12 +28,12 @@ const DropdownUser = () => {
           height={100}
           src={user?.image_url || "https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg"} 
           alt="User"
-          className="overflow-hidden rounded-full"
-        />
+          className="rounded-full object-cover w-full h-full"
+/>
+
 
         </span>
         <span className="flex items-center gap-2 font-medium text-dark dark:text-dark-6">
-          {/* <span className="hidden lg:block">{user?.full_name || "Guest User"}</span> */}
           <svg
             className={`fill-current duration-200 ease-in ${dropdownOpen ? 'rotate-180' : ''}`}
             width="20"
@@ -53,9 +59,9 @@ const DropdownUser = () => {
                 height={112}
                 src={user?.image_url || "https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg"} 
                 alt="User"
-                className="overflow-hidden rounded-full"
+                className="rounded-full object-cover w-full h-full"
               />
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green dark:border-gray-dark"></span>
+              {/* <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green dark:border-gray-dark"></span> */}
             </span>
 
             <span className="block">
@@ -95,7 +101,7 @@ const DropdownUser = () => {
               </Link>
             </li>
 
-            <li>
+            <li onClick={handleLogout}>
               <Link
                 href="/pages/settings"
                 className="flex text-black w-full items-center gap-2.5 rounded-[7px] p-2.5 text-sm font-medium text-dark-4 duration-300 ease-in-out hover:bg-gray-2 hover:text-dark dark:text-dark-6 dark:hover:bg-dark-3 dark:hover:text-white lg:text-base"

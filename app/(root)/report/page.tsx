@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 
 export default function DemoPage() {
   const token = useAppSelector((state: any) => state.auth.token);
+  const isRefresh = useAppSelector((state: any)=>state.auth.isRefresh)
   const [data, setData] = useState<Report[]>([]);
   console.log(data);
   
@@ -30,7 +31,7 @@ export default function DemoPage() {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, isRefresh]);
 
 
   return (

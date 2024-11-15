@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { newRequest } from '@/lib/newRequest';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import toast from 'react-hot-toast';
+import { refresh } from '@/lib/redux/features/auth/authSlice';
 export type Equipment = {
   name: string;
   id: string;
@@ -83,6 +84,8 @@ export const columns: ColumnDef<Equipment>[] = [
     header: 'Actions',
     id: 'actions',
     cell: ({ row }) => {
+      const dispatch = useAppDispatch();
+
       const id = row.getValue('id');
       const route = useRouter();
       const token = useAppSelector((state: any) => state.auth.token);
@@ -93,16 +96,9 @@ export const columns: ColumnDef<Equipment>[] = [
           },
         });
         toast.success('Delete equipment success');
-        route.refresh();
-      };
+        dispatch(refresh())
 
-      // const handleUpdate = async () => {
-      //   await newRequest.post(`/api/v1/${name_type}/update/${id}`, {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   });
-      // };
+      };
 
       return (
         <DropdownMenu>

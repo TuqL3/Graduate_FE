@@ -19,8 +19,5 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none "
       aria-label="Search events"
     />
-    {/* <button className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <FaSearch />
-    </button> */}
   </div>
 );
