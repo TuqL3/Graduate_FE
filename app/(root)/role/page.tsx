@@ -38,7 +38,7 @@ export default function DemoPage() {
     <div className="">
       <div className="flex items-center justify-between">
         <div>
-          <h2>Permissions</h2>
+          <h2>Roles</h2>
           <span className="opacity-40">Role list</span>
         </div>
 

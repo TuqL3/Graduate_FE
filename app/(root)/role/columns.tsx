@@ -4,7 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,17 +43,25 @@ export const columns: ColumnDef<Role>[] = [
       );
     },
   },
-  {
-    accessorKey: 'permissions',
-    accessorFn: (row: any) => {
-      return row.permissions
-        .map((item: any) => item.permission_name)
-        .join(', ');
-    },
-    header: ({ column }) => {
-      return <div>Permission name</div>;
-    },
+
+  { 
+    accessorKey: 'permissions', 
+    accessorFn: (row: any) => { 
+      return row.permissions 
+        .map((item: any) => item.permission_name) 
+        .join(', '); 
+      }, 
+    header: 'Permission name', 
+    cell: ({ row }) => { 
+      const permissions = row.getValue('permissions');
+      return ( 
+        <div className='w-48 truncate'> 
+          {row.getValue('permissions')} 
+        </div> 
+      ); 
+    }, 
   },
+
   {
     header: 'Actions',
     id: 'actions',
