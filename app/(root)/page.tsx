@@ -4,13 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
-  FiSettings,
-  FiShare2,
   FiAlertCircle,
-  FiBarChart2,
-  FiPieChart,
-  FiTrendingUp,
-  FiUser,
 } from 'react-icons/fi';
 import {
   Chart as ChartJS,
@@ -25,6 +19,7 @@ import {
   Legend,
 } from 'chart.js';
 import { newRequest } from '@/lib/newRequest';
+import { Bug, Hammer, School, User } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -79,10 +74,10 @@ const Dashboard = () => {
   const [countEquipment, setCountEquipment] = useState()
 
   const dummyMetrics = [
-    { title: 'Total Room', value: countRoom, icon: <FiTrendingUp /> },
-    { title: 'Active Users', value: countUser, icon: <FiUser /> },
-    { title: 'Total Report', value: countReport, icon: <FiBarChart2 /> },
-    { title: 'Total Equipment', value: countEquipment, icon: <FiPieChart /> },
+    { title: 'Total Room', value: countRoom, icon: <School /> },
+    { title: 'Active Users', value: countUser, icon: <User /> },
+    { title: 'Total Report', value: countReport, icon: <Bug /> },
+    { title: 'Total Equipment', value: countEquipment, icon: <Hammer /> },
   ];
 
   useEffect(() => {

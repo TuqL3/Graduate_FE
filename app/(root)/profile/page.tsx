@@ -1,6 +1,8 @@
 'use client';
 import { newRequest } from '@/lib/newRequest';
-import { useAppSelector } from '@/lib/redux/hooks';
+import { update } from '@/lib/redux/features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import {
@@ -52,6 +54,7 @@ interface ProfileData {
 }
 
 const ProfilePage = () => {
+  const dispath = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -59,7 +62,7 @@ const ProfilePage = () => {
     email: user?.email || '',
     bio: user?.bio || '',
     phone: user?.phone || '',
-    profilePicture: user?.image_url || '',
+    profilePicture: user?.image_url || 'https://t4.ftcdn.net/jpg/05/49/98/39/360_F_549983970_bRCkYfk0P6PP5fKbMhZMIb07mCJ6esXL.jpg',
     socialLinks: {
       github: user?.github || '',
       facebook: user?.facebook || '',
@@ -69,6 +72,8 @@ const ProfilePage = () => {
 
   const [editedData, setEditedData] = useState<ProfileData>(profileData);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const route = useRouter();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -126,7 +131,7 @@ const ProfilePage = () => {
         },
       );
 
-      if (response.data.success) {
+      if (response.data.data) {
         const updatedData = response.data.data;
         setProfileData({
           ...profileData,
@@ -144,7 +149,9 @@ const ProfilePage = () => {
         setIsEditing(false);
         setEditedData(profileData);
         setSelectedFile(null);
+        dispath(update({ user: response.data.data }));
         toast.success('Profile updated successfully!');
+        window.location.href = '/profile';
       }
     } catch (err: any) {
       console.error('Update failed:', err);
