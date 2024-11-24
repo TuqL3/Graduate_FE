@@ -1,221 +1,190 @@
-"use client"
-import React, { useState } from "react";
-import { FiSend } from "react-icons/fi";
-import { BsCircleFill } from "react-icons/bs";
-import { format } from "date-fns";
+'use client';
 
-const ChatInterface = () => {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  
-  const dummyUsers = [
-    {
-      id: 1,
-      name: "John Doe",
-      image: "images.unsplash.com/photo-1633332755192-727a05c4013d",
-      status: "online",
-      lastSeen: "2 mins ago"
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      image: "images.unsplash.com/photo-1494790108377-be9c29b29330",
-      status: "offline",
-      lastSeen: "1 hour ago"
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      image: "images.unsplash.com/photo-1599566150163-29194dcaad36",
-      status: "online",
-      lastSeen: "just now"
+import { newRequest } from '@/lib/newRequest';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { useWebSocket } from '@/utils/websocket';
+import { useState, useEffect } from 'react';
+
+export default function Chat() {
+  const user = useAppSelector((state: any) => state.auth.user);
+  const currentUserId = user.id;
+
+  const { messages: wsMessages, sendMessage } = useWebSocket(currentUserId);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>(
+    [],
+  );
+  const [newMessage, setNewMessage] = useState('');
+
+  // Fetch conversations when component mounts
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  // Fetch messages when a conversation is selected
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation.id);
     }
-  ];
+  }, [selectedConversation]);
 
-  const dummyMessages = [
-    {
-      id: 1,
-      senderId: 1,
-      receiverId: 2,
-      text: "Hey, how are you?",
-      timestamp: new Date(2024, 0, 1, 14, 30)
-    },
-    {
-      id: 2,
-      senderId: 2,
-      receiverId: 1,
-      text: "I'm good, thanks! How about you?",
-      timestamp: new Date(2024, 0, 1, 14, 32)
+  // Handle WebSocket messages for real-time updates
+  useEffect(() => {
+    wsMessages.forEach((message: Message) => {
+      if (message.conversation_id === selectedConversation?.id) {
+        setConversationMessages((prevMessages) => [...prevMessages, message]);
+      }
+    });
+  }, [wsMessages, selectedConversation]);
+
+  // Fetch all conversations
+  const fetchConversations = async () => {
+    try {
+      const response = await newRequest.get('/api/v1/conversation/');
+      const data: Conversation[] = response.data.data;
+
+      // Filter conversations where the current user is either sender or receiver
+      const filteredConversations = data.filter(
+        (conv) =>
+          conv.sender_id === currentUserId ||
+          conv.receiver_id === currentUserId,
+      );
+
+      setConversations(filteredConversations);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
     }
-  ];
-
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    setError("");
   };
 
-  const handleSendMessage = (e) => {
+  // Fetch messages for the selected conversation
+  const fetchMessages = async (conversationId: number) => {
+    try {
+      const response = await newRequest.get(
+        `/api/v1/message/${conversationId}`,
+      );
+      const data = await response.data.data;
+      setConversationMessages(data);
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+
+  // Send a new message
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) {
-      setError("Message cannot be empty");
-      return;
-    }
-    setMessage("");
-    setError("");
-  };
+    if (!newMessage.trim() || !selectedConversation) return;
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(e);
-    }
+    const message: Message = {
+      conversation_id: selectedConversation.id,
+      sender_id: currentUserId,
+      receiver_id:
+        selectedConversation.sender_id === currentUserId
+          ? selectedConversation.receiver_id
+          : selectedConversation.sender_id,
+      content: newMessage,
+      created_at: new Date().toISOString(),
+    };
+
+    sendMessage(message); // Send message via WebSocket
+    setConversationMessages((prevMessages) => [...prevMessages, message]); // Update UI immediately
+    setNewMessage('');
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* User Selection Sidebar */}
-      <div className="w-1/4 bg-white rounded-l-lg shadow-lg overflow-hidden">
-        <div className="p-4 bg-indigo-600">
-          <h2 className="text-white text-xl font-semibold">Contacts</h2>
-        </div>
-        <div className="overflow-y-auto h-[calc(100%-4rem)]">
-          {dummyUsers.map((user) => (
-            <button
-              key={user.id}
-              onClick={() => handleUserSelect(user)}
-              className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-50 transition-colors duration-200 ${
-                selectedUser?.id === user.id ? "bg-gray-100" : ""
-              }`}
-              aria-label={`Chat with ${user.name}`}
-            >
-              <div className="relative">
-                <img
-                  src={`https://${user.image}`}
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://images.unsplash.com/photo-1633332755192-727a05c4013d";
-                  }}
-                />
-                <BsCircleFill
-                  className={`absolute bottom-0 right-0 text-${
-                    user.status === "online" ? "green" : "gray"
-                  }-500`}
-                  size={12}
-                />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800">{user.name}</h3>
-                <p className="text-sm text-gray-500">{user.lastSeen}</p>
-              </div>
-            </button>
-          ))}
+      {/* Conversation List */}
+      <div className="w-1/4 bg-white border-r">
+        <div className="p-4">
+          <h2 className="text-xl font-bold mb-4">Messages</h2>
+          <div className="space-y-2">
+            {conversations.map((conv) => {
+              const otherUser =
+                conv.sender_id === currentUserId ? conv.receiver : conv.sender;
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => setSelectedConversation(conv)}
+                  className={`w-full p-3 text-left rounded hover:bg-gray-100 ${
+                    selectedConversation?.id === conv.id ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <div className="font-medium">{otherUser.full_name}</div>
+                  {conv.last_message && (
+                    <div className="text-sm text-gray-500 truncate">
+                      {conv.last_message}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 bg-white rounded-r-lg shadow-lg flex flex-col">
-        {selectedUser ? (
+      {/* Chat Window */}
+      <div className="flex-1 flex flex-col">
+        {selectedConversation ? (
           <>
-            {/* Chat Header */}
-            <div className="p-4 border-b flex items-center space-x-4">
-              <img
-                src={`https://${selectedUser.image}`}
-                alt={selectedUser.name}
-                className="w-10 h-10 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.src = "https://images.unsplash.com/photo-1633332755192-727a05c4013d";
-                }}
-              />
-              <div>
-                <h2 className="font-semibold text-gray-800">
-                  {selectedUser.name}
-                </h2>
-                <p className="text-sm text-gray-500">{selectedUser.status}</p>
-              </div>
+            <div className="p-4 bg-white border-b">
+              <h3 className="font-bold">
+                {selectedConversation.sender_id === currentUserId
+                  ? selectedConversation.receiver.name
+                  : selectedConversation.sender.name}
+              </h3>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {dummyMessages.map((msg) => (
+            <div className="flex-1 p-4 overflow-y-auto">
+              {conversationMessages.map((message, index) => (
                 <div
-                  key={msg.id}
-                  className={`flex ${
-                    msg.senderId === 1 ? "justify-end" : "justify-start"
+                  key={index}
+                  className={`mb-4 flex ${
+                    message.sender_id === currentUserId
+                      ? 'justify-end'
+                      : 'justify-start'
                   }`}
                 >
                   <div
                     className={`max-w-[70%] p-3 rounded-lg ${
-                      msg.senderId === 1
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-100 text-gray-800"
+                      message.sender_id === currentUserId
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200'
                     }`}
                   >
-                    <p>{msg.text}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        msg.senderId === 1 ? "text-indigo-200" : "text-gray-500"
-                      }`}
-                    >
-                      {format(msg.timestamp, "HH:mm")}
-                    </p>
+                    {message.content}
                   </div>
                 </div>
               ))}
-              {isTyping && (
-                <div className="flex items-center space-x-2 text-gray-500">
-                  <span className="text-sm">Typing</span>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Message Input */}
             <form
               onSubmit={handleSendMessage}
-              className="p-4 border-t bg-white"
+              className="p-4 bg-white border-t"
             >
-              <div className="relative">
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1 px-4 py-2 border rounded"
                   placeholder="Type a message..."
-                  className={`w-full p-3 pr-12 rounded-lg border ${
-                    error ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:border-indigo-500 resize-none`}
-                  rows="1"
-                  aria-label="Message input"
                 />
                 <button
                   type="submit"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
-                  aria-label="Send message"
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
-                  <FiSend size={20} />
+                  Send
                 </button>
               </div>
-              {error && (
-                <p className="mt-2 text-sm text-red-500" role="alert">
-                  {error}
-                </p>
-              )}
             </form>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
-            <p>Select a user to start chatting</p>
+            Select a conversation to start chatting
           </div>
         )}
       </div>
     </div>
   );
-};
-
-export default ChatInterface;
+}
