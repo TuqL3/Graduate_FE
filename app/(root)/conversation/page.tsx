@@ -142,8 +142,6 @@ export default function Chat() {
       sendMessage(message);
 
       await newRequest.post('/api/v1/message/', message);
-      console.log(message);
-      
       
       updateConversationWithLatestMessage(message);
     } catch (error) {
