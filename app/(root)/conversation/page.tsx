@@ -7,6 +7,7 @@ import { formatDistance } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { useWebSocket } from '@/utils/websocket';
 import { Conversation, Message } from '@/utils';
+import Image from 'next/image';
 
 export default function Chat() {
   const user = useAppSelector((state: any) => state.auth.user);
@@ -21,9 +22,18 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const pendingMessagesRef = useRef<Set<string>>(new Set());
 
+  const [listUser, setListUser] = useState([])
+
+  console.log(listUser);
+
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    fetchListUser();
+  }, [])
 
   useEffect(() => {
     scrollToBottom();
@@ -42,18 +52,18 @@ export default function Chat() {
   useEffect(() => {
     if (wsMessages.length > 0) {
       const lastMessage = wsMessages[wsMessages.length - 1];
-      
+
       const messageKey = `${lastMessage.sender_id}-${lastMessage.created_at}`;
       const isPendingMessage = pendingMessagesRef.current.has(messageKey);
-      
+
       if (lastMessage.conversation_id === selectedConversation?.id) {
         setConversationMessages((prevMessages) => {
           const messageExists = prevMessages.some(
-            (msg) => 
-              msg.created_at === lastMessage.created_at && 
+            (msg) =>
+              msg.created_at === lastMessage.created_at &&
               msg.sender_id === lastMessage.sender_id
           );
-          
+
           if (!messageExists) {
             if (isPendingMessage) {
               pendingMessagesRef.current.delete(messageKey);
@@ -68,6 +78,11 @@ export default function Chat() {
       }
     }
   }, [wsMessages, selectedConversation?.id]);
+
+  const fetchListUser = async () => {
+    const res = await newRequest.get("/api/v1/user")
+    setListUser(res.data.data)
+  }
 
   const fetchConversations = async () => {
     try {
@@ -102,8 +117,11 @@ export default function Chat() {
     }
   };
 
-  const updateConversationWithLatestMessage = (message: Message) => {
-    setConversations((prevConversations) => 
+  const updateConversationWithLatestMessage = async (message: Message) => {
+    await newRequest.put(`/api/v1/conversation/${message.conversation_id}`, {
+      last_message: message.content
+    })
+    setConversations((prevConversations) =>
       prevConversations.map((conv) => {
         if (conv.id === message.conversation_id) {
           return {
@@ -135,22 +153,22 @@ export default function Chat() {
     try {
       const messageKey = `${message.sender_id}-${message.created_at}`;
       pendingMessagesRef.current.add(messageKey);
-      
+
       setConversationMessages((prev) => [...prev, message]);
       setNewMessage('');
-      
+
       sendMessage(message);
 
       await newRequest.post('/api/v1/message/', message);
-      
+
       updateConversationWithLatestMessage(message);
     } catch (error) {
       console.error('Failed to send message:', error);
       toast.error('Failed to send message');
-      
+
       const messageKey = `${message.sender_id}-${message.created_at}`;
       pendingMessagesRef.current.delete(messageKey);
-      setConversationMessages((prev) => 
+      setConversationMessages((prev) =>
         prev.filter(msg => msg.created_at !== message.created_at)
       );
     }
@@ -163,6 +181,9 @@ export default function Chat() {
   const formatMessageTime = (timestamp: string) => {
     return formatDistance(new Date(timestamp), new Date(), { addSuffix: true });
   };
+
+  console.log(conversations);
+  
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -179,19 +200,30 @@ export default function Chat() {
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv)}
-                    className={`w-full p-3 text-left rounded hover:bg-gray-100 transition-colors ${
-                      selectedConversation?.id === conv.id ? 'bg-blue-50' : ''
-                    }`}
+                    className={`w-full p-3 text-left rounded hover:bg-gray-100 transition-colors ${selectedConversation?.id === conv.id ? 'bg-blue-50' : ''
+                      }`}
                   >
-                    <div className="font-medium">{otherUser.full_name}</div>
-                    {conv.last_message && (
-                      <div className="text-sm text-gray-500 truncate">
-                        {conv.last_message}
+                    <div className='flex items-center space-x-4'>
+                      <Image
+                        src={otherUser.image_url}
+                        width={50}
+                        height={50}
+                        alt="Picture of the author"
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="font-medium">{otherUser.full_name}</div>
+                        {conv.last_message && (
+                          <div className="text-sm text-gray-500 truncate">
+                            {conv.last_message}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1">
+                          {formatMessageTime(conv.updated_at)}
+                        </div>
                       </div>
-                    )}
-                    <div className="text-xs text-gray-400 mt-1">
-                      {formatMessageTime(conv.updated_at)}
                     </div>
+
                   </button>
                 );
               })}
@@ -204,8 +236,17 @@ export default function Chat() {
         {selectedConversation ? (
           <>
             <div className="p-4 bg-white border-b flex items-center justify-between">
-              <h3 className="font-bold">
-                {getOtherUser(selectedConversation).full_name}
+              <h3 className="font-bold flex items-center space-x-4 justify-center">
+                <Image
+                  src={getOtherUser(selectedConversation).image_url}
+                  width={50}
+                  height={50}
+                  alt="Picture of the author"
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <span>
+                  {getOtherUser(selectedConversation).full_name}
+                </span>
               </h3>
               {!isConnected && (
                 <span className="text-sm text-red-500">Disconnected</span>
@@ -219,26 +260,23 @@ export default function Chat() {
                 conversationMessages.map((message, index) => (
                   <div
                     key={index}
-                    className={`mb-4 flex ${
-                      message.sender_id === currentUserId
+                    className={`mb-4 flex ${message.sender_id === currentUserId
                         ? 'justify-end'
                         : 'justify-start'
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg ${
-                        message.sender_id === currentUserId
+                      className={`max-w-[70%] p-3 rounded-lg ${message.sender_id === currentUserId
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200'
-                      }`}
+                        }`}
                     >
                       <div>{message.content}</div>
-                      <div 
-                        className={`text-xs mt-1 ${
-                          message.sender_id === currentUserId
+                      <div
+                        className={`text-xs mt-1 ${message.sender_id === currentUserId
                             ? 'text-blue-100'
                             : 'text-gray-500'
-                        }`}
+                          }`}
                       >
                         {formatMessageTime(message.created_at)}
                       </div>
