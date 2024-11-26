@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { newRequest } from '@/lib/newRequest';
 import { useState, useEffect } from 'react';
+import { useAppSelector } from '@/lib/redux/hooks';
 
 const FormSchema = z.object({
   room: z.string({
@@ -33,6 +34,8 @@ interface ISelectRoom {
 }
 
 const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
+  const token = useAppSelector((state: any) => state.auth.token);
+  
   const router = useRouter();
   const [rooms, setRooms] = useState([]);
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -40,6 +43,9 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   });
 
   const pathName = usePathname()
+
+  console.log(rooms);
+  
 
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({
@@ -58,7 +64,11 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
       router.push(roomId === 'all' ? `${pathName}` : `?roomId=${roomId}`);
 
       const url = roomId === 'all' ? '/api/v1/schedule' : `/api/v1/schedule?roomId=${roomId}`;
-      const res = await newRequest.get(url);
+      const res = await newRequest.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       const events = transformToEvents(res.data);
       setEvents(events);
     } catch (error) {
@@ -69,7 +79,11 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const res = await newRequest.get('api/v1/room');
+        const res = await newRequest.get('api/v1/room',{
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         setRooms(res.data.data);
       } catch (error) {
         console.log(error);
