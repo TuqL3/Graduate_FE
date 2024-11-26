@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { formatDistance } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { useWebSocket } from '@/utils/websocket';
-import { Conversation, Message } from '@/utils';
+import { Conversation, Message, User } from '@/utils';
 import Image from 'next/image';
 
 export default function Chat() {
@@ -14,18 +14,25 @@ export default function Chat() {
   const currentUserId = user.id;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages: wsMessages, sendMessage, isConnected } = useWebSocket(currentUserId);
+  const {
+    messages: wsMessages,
+    sendMessage,
+    isConnected,
+  } = useWebSocket(currentUserId);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>(
+    [],
+  );
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const pendingMessagesRef = useRef<Set<string>>(new Set());
 
-  const [listUser, setListUser] = useState([])
-
-  console.log(listUser);
-
+  const [listUser, setListUser] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const token = useAppSelector((state: any) => state.auth.token);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,15 +40,22 @@ export default function Chat() {
 
   useEffect(() => {
     fetchListUser();
-  }, [])
+    fetchConversations();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [conversationMessages]);
 
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    // Filter users based on search query
+    const filtered = listUser.filter(
+      (u) =>
+        u.id !== currentUserId &&
+        u.full_name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+    setFilteredUsers(filtered);
+  }, [searchQuery, listUser, currentUserId]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -61,7 +75,7 @@ export default function Chat() {
           const messageExists = prevMessages.some(
             (msg) =>
               msg.created_at === lastMessage.created_at &&
-              msg.sender_id === lastMessage.sender_id
+              msg.sender_id === lastMessage.sender_id,
           );
 
           if (!messageExists) {
@@ -80,19 +94,39 @@ export default function Chat() {
   }, [wsMessages, selectedConversation?.id]);
 
   const fetchListUser = async () => {
-    const res = await newRequest.get("/api/v1/user")
-    setListUser(res.data.data)
-  }
+    try {
+      const res = await newRequest.get('/api/v1/user', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setListUser(res.data.data);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      toast.error('Failed to load users');
+    }
+  };
 
   const fetchConversations = async () => {
     try {
       setIsLoading(true);
-      const response = await newRequest.get('/api/v1/conversation/');
+      const response = await newRequest.get('/api/v1/conversation/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data: Conversation[] = response.data.data;
 
       const filteredConversations = data
-        .filter((conv) => conv.sender_id === currentUserId || conv.receiver_id === currentUserId)
-        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        .filter(
+          (conv) =>
+            conv.sender_id === currentUserId ||
+            conv.receiver_id === currentUserId,
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+        );
 
       setConversations(filteredConversations);
     } catch (error) {
@@ -106,7 +140,14 @@ export default function Chat() {
   const fetchMessages = async (conversationId: number) => {
     try {
       setIsLoading(true);
-      const response = await newRequest.get(`/api/v1/message/${conversationId}`);
+      const response = await newRequest.get(
+        `/api/v1/message/${conversationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       const data = response.data.data;
       setConversationMessages(data);
     } catch (error) {
@@ -117,21 +158,70 @@ export default function Chat() {
     }
   };
 
+  const createNewConversation = async (receiverId: number) => {
+    try {
+      const existingConv = conversations.find(
+        (conv) =>
+          (conv.sender_id === currentUserId &&
+            conv.receiver_id === receiverId) ||
+          (conv.sender_id === receiverId && conv.receiver_id === currentUserId),
+      );
+
+      if (existingConv) {
+        setSelectedConversation(existingConv);
+        await fetchMessages(existingConv.id);
+      } else {
+        const response = await newRequest.post(
+          '/api/v1/conversation/findorcreate',
+          {
+            sender_id: currentUserId,
+            receiver_id: receiverId,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const newConversation = response.data.data;
+
+        await fetchConversations();
+
+        setSelectedConversation(newConversation);
+        setConversationMessages([]);
+      }
+
+      // return newConversation;
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      toast.error('Failed to start new conversation');
+    }
+  };
+
   const updateConversationWithLatestMessage = async (message: Message) => {
-    await newRequest.put(`/api/v1/conversation/${message.conversation_id}`, {
-      last_message: message.content
-    })
+    await newRequest.put(
+      `/api/v1/conversation/${message.conversation_id}`,
+      {
+        last_message: message.content,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
     setConversations((prevConversations) =>
       prevConversations.map((conv) => {
         if (conv.id === message.conversation_id) {
           return {
             ...conv,
             last_message: message.content,
-            updated_at: message.created_at
+            updated_at: message.created_at,
           };
         }
         return conv;
-      })
+      }),
     );
   };
 
@@ -159,7 +249,11 @@ export default function Chat() {
 
       sendMessage(message);
 
-      await newRequest.post('/api/v1/message/', message);
+      await newRequest.post('/api/v1/message/', message, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       updateConversationWithLatestMessage(message);
     } catch (error) {
@@ -169,29 +263,66 @@ export default function Chat() {
       const messageKey = `${message.sender_id}-${message.created_at}`;
       pendingMessagesRef.current.delete(messageKey);
       setConversationMessages((prev) =>
-        prev.filter(msg => msg.created_at !== message.created_at)
+        prev.filter((msg) => msg.created_at !== message.created_at),
       );
     }
   };
 
   const getOtherUser = (conversation: Conversation) => {
-    return conversation.sender_id === currentUserId ? conversation.receiver : conversation.sender;
+    if (!conversation) return null;
+    return conversation.sender_id === currentUserId
+      ? conversation.receiver || {}
+      : conversation.sender || {};
   };
 
   const formatMessageTime = (timestamp: string) => {
     return formatDistance(new Date(timestamp), new Date(), { addSuffix: true });
   };
 
-  console.log(conversations);
-  
-
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="w-1/4 bg-white border-r overflow-y-auto">
         <div className="p-4">
           <h2 className="text-xl font-bold mb-4">Messages</h2>
+
+          {/* User Search Input */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* User Search Results */}
+          {searchQuery && (
+            <div className="mb-4 max-h-48 overflow-y-auto">
+              {filteredUsers.map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => createNewConversation(u.id)}
+                  className="w-full p-2 text-left hover:bg-gray-100 rounded flex items-center"
+                >
+                  <Image
+                    src={u.image_url}
+                    width={40}
+                    height={40}
+                    alt={u.full_name}
+                    className="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                  <span>{u.full_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Existing Conversations List */}
           {isLoading && conversations.length === 0 ? (
-            <div className="text-center text-gray-500">Loading conversations...</div>
+            <div className="text-center text-gray-500">
+              Loading conversations...
+            </div>
           ) : (
             <div className="space-y-2">
               {conversations.map((conv) => {
@@ -200,10 +331,11 @@ export default function Chat() {
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv)}
-                    className={`w-full p-3 text-left rounded hover:bg-gray-100 transition-colors ${selectedConversation?.id === conv.id ? 'bg-blue-50' : ''
-                      }`}
+                    className={`w-full p-3 text-left rounded hover:bg-gray-100 transition-colors ${
+                      selectedConversation?.id === conv.id ? 'bg-blue-50' : ''
+                    }`}
                   >
-                    <div className='flex items-center space-x-4'>
+                    <div className="flex items-center space-x-4">
                       <Image
                         src={otherUser.image_url}
                         width={50}
@@ -223,7 +355,6 @@ export default function Chat() {
                         </div>
                       </div>
                     </div>
-
                   </button>
                 );
               })}
@@ -244,9 +375,7 @@ export default function Chat() {
                   alt="Picture of the author"
                   className="w-12 h-12 rounded-full object-cover"
                 />
-                <span>
-                  {getOtherUser(selectedConversation).full_name}
-                </span>
+                <span>{getOtherUser(selectedConversation).full_name}</span>
               </h3>
               {!isConnected && (
                 <span className="text-sm text-red-500">Disconnected</span>
@@ -255,28 +384,33 @@ export default function Chat() {
 
             <div className="flex-1 p-4 overflow-y-auto">
               {isLoading ? (
-                <div className="text-center text-gray-500">Loading messages...</div>
+                <div className="text-center text-gray-500">
+                  Loading messages...
+                </div>
               ) : (
                 conversationMessages.map((message, index) => (
                   <div
                     key={index}
-                    className={`mb-4 flex ${message.sender_id === currentUserId
+                    className={`mb-4 flex ${
+                      message.sender_id === currentUserId
                         ? 'justify-end'
                         : 'justify-start'
-                      }`}
+                    }`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg ${message.sender_id === currentUserId
+                      className={`max-w-[70%] p-3 rounded-lg ${
+                        message.sender_id === currentUserId
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-200'
-                        }`}
+                      }`}
                     >
                       <div>{message.content}</div>
                       <div
-                        className={`text-xs mt-1 ${message.sender_id === currentUserId
+                        className={`text-xs mt-1 ${
+                          message.sender_id === currentUserId
                             ? 'text-blue-100'
                             : 'text-gray-500'
-                          }`}
+                        }`}
                       >
                         {formatMessageTime(message.created_at)}
                       </div>
