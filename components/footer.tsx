@@ -1,13 +1,19 @@
 const Footer = () => {
   return (
-    <div className="flex items-center justify-center bg-[rgb(235,30,35)] py-2">
-      <span className="text-white text-center">
-        Copyright © 2024 Le Van Tung
-        <br />
-        Version: TuqL3-2024.10F.14  
-        <br />
-        Design by TuqL3
-      </span>
+    
+    <div className="bg-red-500 py-4 text-gray-100">
+      <div className="container mx-auto px-4">
+        <div className="-mx-4 flex flex-wrap justify-between">
+          <div className="px-4 w-full text-center sm:w-auto sm:text-left">
+            Copyright © 2024
+            <script>new Date().getFullYear()  2020 && document.write("- " + new Date().getFullYear())</script> - 2022
+            Tung. All Rights Reserved.
+          </div>
+          <div className="px-4 w-full text-center sm:w-auto sm:text-left">
+            Made with ❤️ by Tung.
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

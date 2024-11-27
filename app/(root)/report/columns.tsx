@@ -24,7 +24,6 @@ export type Report = {
   id: string;
   room: Room;
   equipmentId: string;
-  // equipmentType: string;
   status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
 };
 

@@ -48,7 +48,6 @@ export default function Chat() {
   }, [conversationMessages]);
 
   useEffect(() => {
-    // Filter users based on search query
     const filtered = listUser.filter(
       (u) =>
         u.id !== currentUserId &&
@@ -192,7 +191,6 @@ export default function Chat() {
         setConversationMessages([]);
       }
 
-      // return newConversation;
     } catch (error) {
       console.error('Failed to create conversation:', error);
       toast.error('Failed to start new conversation');

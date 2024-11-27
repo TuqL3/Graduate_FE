@@ -36,6 +36,12 @@ const CalendarSchedule = () => {
   const token = useAppSelector((state: any) => state.auth.token);
   const user = useAppSelector((state: any)=> state.auth.user)
 
+  const statusColorMap = {
+    'pending': '#3B82F6', 
+    'resolve': '#10B981', 
+    'reject': '#EF4444'  
+  };
+
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({
       id: schedule.id,
@@ -45,7 +51,25 @@ const CalendarSchedule = () => {
       participants: schedule.user.id,
       start: new Date(schedule.start_time),
       end: new Date(schedule.end_time),
+      status: schedule.status.toLowerCase()
     }));
+  };
+
+
+  console.log(events);
+  
+
+  const eventStyleGetter = (event: any) => {
+    const backgroundColor = statusColorMap[event.status] || '#3B82F6';
+    return {
+      style: {
+        backgroundColor,
+        borderColor: backgroundColor,
+        color: 'white',
+        borderRadius: '4px',
+        opacity: 0.8
+      }
+    };
   };
 
   useEffect(() => {
@@ -243,8 +267,8 @@ const CalendarSchedule = () => {
         style={{ height: 600 }}
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
-        onEventDrop={handleEventDrop} // Enable drag and drop
-        onEventResize={handleEventResize} // Optional: Enable resizing
+        onEventDrop={handleEventDrop}
+        onEventResize={handleEventResize}
         selectable
         resizable
         views={['day', 'week', 'month', 'agenda']}
@@ -253,7 +277,8 @@ const CalendarSchedule = () => {
         date={date}
         onNavigate={setDate}
         className="shadow-lg rounded-lg bg-white mt-4"
-        tooltipAccessor={(event) => `${event.title}\n${event.description}`}
+        tooltipAccessor={(event) => `${event.title}\n${event.description}\nStatus: ${event.status}`}
+        eventPropGetter={eventStyleGetter}
       />
       {showEventForm && (
         <EventForm

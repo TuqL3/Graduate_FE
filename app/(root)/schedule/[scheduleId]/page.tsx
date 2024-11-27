@@ -88,7 +88,6 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch rooms and users in parallel
         const [roomsResponse, usersResponse] = await Promise.all([
           newRequest.get('/api/v1/room', {
             headers: { Authorization: `Bearer ${token}` },
@@ -101,7 +100,6 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
         setRooms(roomsResponse.data.data);
         setUsers(usersResponse.data.data);
 
-        // If we have a scheduleId, fetch the schedule data
         if (params.scheduleId) {
           const scheduleResponse = await newRequest.get(
             `/api/v1/schedule/${params.scheduleId}`,
@@ -133,34 +131,7 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
     fetchData();
   }, [params.scheduleId, token, form]);
 
-  // async function onSubmit(data: z.infer<typeof FormSchema>) {
-  //   try {
-  //     await newRequest.put(
-  //       `/api/v1/schedule/update/${params.scheduleId}`,
-  //       {
-  //         location: parseInt(data.roomName),
-  //         participants: parseInt(data.userName),
-  //         title: data.title,
-  //         description: data.description,
-  //         start_time: data.start,
-  //         end_time: data.end,
-  //         status: data.status,
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-  //     toast.success('Update schedule success');
-  //     route.push('/schedule');
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //     toast.error('Something went wrong');
-  //   }
-
-  //   console.log(data);
-  // }
+  
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {

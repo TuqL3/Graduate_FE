@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '@/components/footer';
 import './css.css';
@@ -15,8 +15,22 @@ export default function HomeLayout({
 }) {
   const navigate = useRouter();
   const user = useAppSelector((state: any) => state.auth.user);
-  if (!user) {
-    navigate.push('/login');
+  let role: string;
+
+  if (user) {
+    role = user.roles[0].role_name;
+  }
+  
+  useEffect(() => { 
+    if (!user) { 
+      navigate.push('/login'); 
+    } 
+    else if (role == "giangvien"){
+      navigate.push('calendar')
+    }
+  }, [user, navigate]); 
+  if (!user) { 
+    return null;
   }
 
   return (

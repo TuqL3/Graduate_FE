@@ -201,7 +201,6 @@ const ProfilePage = () => {
       const file = e.target.files[0];
       setSelectedFile(file);
 
-      // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditedData((prev) => ({

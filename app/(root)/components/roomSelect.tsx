@@ -35,6 +35,7 @@ interface ISelectRoom {
 
 const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   const token = useAppSelector((state: any) => state.auth.token);
+  const user = useAppSelector((state: any)=> state.auth.user)
   
   const router = useRouter();
   const [rooms, setRooms] = useState([]);
@@ -47,9 +48,6 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
 
   const pathName = usePathname()
 
-  console.log(rooms);
-  
-
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({
       id: schedule.id,
@@ -59,6 +57,8 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
       participants: schedule.user.id,
       start: new Date(schedule.start_time),
       end: new Date(schedule.end_time),
+      status: schedule.status.toLowerCase()
+
     }));
   };
 
@@ -66,7 +66,7 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
     try {
       router.push(roomId === 'all' ? `${pathName}` : `?roomId=${roomId}`);
 
-      const url = roomId === 'all' ? '/api/v1/schedule' : `/api/v1/schedule?roomId=${roomId}`;
+      const url = roomId === 'all' ? `/api/v1/schedule?userId=${user.id}` : `/api/v1/schedule?roomId=${roomId}`;
       const res = await newRequest.get(url, {
         headers: {
           Authorization: `Bearer ${token}`

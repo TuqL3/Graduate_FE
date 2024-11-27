@@ -85,7 +85,6 @@ const CreateUser = ({ params }: { params: { userId: string } }) => {
 
           const userData = res.data.data;
 
-          // Set form values including roles
           form.reset({
             username: userData.username,
             roles: String(userData.roles[0].id),

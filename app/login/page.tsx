@@ -63,12 +63,12 @@ export default function Login() {
         login({
           token: res.data.data.token,
           user: res.data.data.user,
+          isRefresh: false
         })
       );
-
+        
       navigation.push('/');
     } catch (error) {
-      // Handle login error
       form.setError('root', {
         type: 'manual',
         message: 'Invalid username or password',

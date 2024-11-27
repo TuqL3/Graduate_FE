@@ -1,16 +1,10 @@
-// import useColorMode from "@/hooks/useColorMode";
 
 const DarkModeSwitcher = () => {
-  // const [colorMode, setColorMode] = useColorMode();
 
   return (
     <li>
       <div
-        // onClick={() => {
-        //   if (typeof setColorMode === "function") {
-        //     setColorMode(colorMode === "light" ? "dark" : "light");
-        //   }
-        // }}
+     
         className={`relative z-10 flex h-12 w-[96px] cursor-pointer items-center gap-2.5 rounded-full bg-gray-3 p-[5px] text-dark dark:bg-[#020d1a] dark:text-white`}
       >
         <div
