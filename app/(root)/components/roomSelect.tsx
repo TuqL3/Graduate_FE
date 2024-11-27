@@ -40,6 +40,9 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   const [rooms, setRooms] = useState([]);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      room: "all"
+    }
   });
 
   const pathName = usePathname()
