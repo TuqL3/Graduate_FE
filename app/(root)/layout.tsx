@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import Sidebar1 from '@/components/Sidebar/index';
 import { useAppSelector } from '@/lib/redux/hooks';
 import { useRouter } from 'next/navigation';
+import { WebSocketProvider } from '@/utils/websocketContext';
 export default function HomeLayout({
   children,
 }: {
@@ -20,16 +21,15 @@ export default function HomeLayout({
   if (user) {
     role = user.roles[0].role_name;
   }
-  
-  useEffect(() => { 
-    if (!user) { 
-      navigate.push('/login'); 
-    } 
-    else if (role == "giangvien"){
-      navigate.push('calendar')
+
+  useEffect(() => {
+    if (!user) {
+      navigate.push('/login');
+    } else if (role == 'giangvien') {
+      navigate.push('calendar');
     }
-  }, [user, navigate]); 
-  if (!user) { 
+  }, [user, navigate]);
+  if (!user) {
     return null;
   }
 
@@ -41,7 +41,7 @@ export default function HomeLayout({
           <Header />
           <main>
             <div className="mx-auto p-4 md:p-6 2xl:p-10">
-              {children}
+              <WebSocketProvider userId={user.id}>{children}</WebSocketProvider>
             </div>
           </main>
         </div>
