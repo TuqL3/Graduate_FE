@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { Message } from '.';
 
 export function useWebSocket(userId: number) {
@@ -7,6 +8,8 @@ export function useWebSocket(userId: number) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 5;
+
+  const token = useSelector((state: any) => state.auth.token);
 
   const connect = useCallback(() => {
     const ws = new WebSocket(`ws://localhost:8081/ws/${userId}`);
@@ -55,6 +58,14 @@ export function useWebSocket(userId: number) {
   }, [userId]);
 
   useEffect(() => {
+    if (!token) {
+      wsRef.current?.close();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      return;
+    }
+
     const cleanup = connect();
     return () => {
       cleanup();
@@ -62,7 +73,7 @@ export function useWebSocket(userId: number) {
         wsRef.current.close();
       }
     };
-  }, [connect]);
+  }, [connect, token]);
 
   const sendMessage = useCallback((message: Message) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
