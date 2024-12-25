@@ -35,18 +35,18 @@ interface ISelectRoom {
 
 const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   const token = useAppSelector((state: any) => state.auth.token);
-  const user = useAppSelector((state: any)=> state.auth.user)
-  
+  const user = useAppSelector((state: any) => state.auth.user);
+
   const router = useRouter();
   const [rooms, setRooms] = useState([]);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      room: "all"
-    }
+      room: 'all',
+    },
   });
 
-  const pathName = usePathname()
+  const pathName = usePathname();
 
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({
@@ -57,8 +57,7 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
       participants: schedule.user.id,
       start: new Date(schedule.start_time),
       end: new Date(schedule.end_time),
-      status: schedule.status.toLowerCase()
-
+      status: schedule.status.toLowerCase(),
     }));
   };
 
@@ -66,11 +65,14 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
     try {
       router.push(roomId === 'all' ? `${pathName}` : `?roomId=${roomId}`);
 
-      const url = roomId === 'all' ? `/api/v1/schedule?userId=${user.id}` : `/api/v1/schedule?roomId=${roomId}`;
+      const url =
+        roomId === 'all'
+          ? `/api/v1/schedule?userId=${user.id}`
+          : `/api/v1/schedule?userId=${user.id}&roomId=${roomId}`;
       const res = await newRequest.get(url, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
       const events = transformToEvents(res.data);
       setEvents(events);
@@ -82,10 +84,10 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const res = await newRequest.get('api/v1/room',{
+        const res = await newRequest.get('api/v1/room', {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
         setRooms(res.data.data);
       } catch (error) {
@@ -106,8 +108,8 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
               <FormLabel>Room</FormLabel>
               <Select
                 onValueChange={(value) => {
-                  field.onChange(value);  
-                  onSubmit(value);       
+                  field.onChange(value);
+                  onSubmit(value);
                 }}
                 defaultValue={field.value}
               >

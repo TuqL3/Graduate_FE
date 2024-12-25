@@ -54,7 +54,7 @@ export default function DemoPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await newRequest.post('/api/import', formData, {
+      const response = await newRequest.post('/api/v1/user/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
