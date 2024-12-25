@@ -49,8 +49,8 @@ const EventForm: React.FC<EventFormProps> = ({
       id: apiData.id,
       title: apiData.title,
       description: apiData.description,
-      location: apiData.room.id,
-      participants: apiData.user.id,
+      location: apiData.room_id,
+      participants: apiData.user_id,
       start: new Date(apiData.start_time),
       end: new Date(apiData.end_time),
     };
@@ -80,16 +80,18 @@ const EventForm: React.FC<EventFormProps> = ({
   }, [token]);
 
   const handleUpdate = async () => {
+    const startUTC = new Date(newEvent.start).toISOString();
+    const endtUTC = new Date(newEvent.end).toISOString();
     try {
       const res = await newRequest.put(
         `/api/v1/schedule/update/${newEvent.id}`,
         {
           title: newEvent.title,
-          start: newEvent.start,
-          end: newEvent.end,
+          start: startUTC,
+          end: endtUTC,
           description: newEvent.description,
-          location: parseInt(newEvent.location),
-          participants: parseInt(newEvent.participants),
+          location: newEvent.location,
+          participants: newEvent.participants,
         },
         {
           headers: {
@@ -98,8 +100,13 @@ const EventForm: React.FC<EventFormProps> = ({
         },
       );
 
-      const updatedEvent = transformToEvents(res.data.data);
 
+
+      const updatedEvent = transformToEvents(res.data.data);
+      console.log(res.data.data);
+      
+      // console.log(updatedEvent);
+      
 
       const updatedEvents = events.map((event) =>
         event.id === updatedEvent.id ? updatedEvent : event,

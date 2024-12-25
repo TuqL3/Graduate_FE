@@ -34,12 +34,12 @@ const CalendarSchedule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const token = useAppSelector((state: any) => state.auth.token);
-  const user = useAppSelector((state: any)=> state.auth.user)
+  const user = useAppSelector((state: any) => state.auth.user);
 
   const statusColorMap = {
-    'pending': '#3B82F6', 
-    'resolve': '#10B981', 
-    'reject': '#EF4444'  
+    pending: '#3B82F6',
+    resolve: '#10B981',
+    reject: '#EF4444',
   };
 
   const transformToEvents = (apiData: any) => {
@@ -51,13 +51,9 @@ const CalendarSchedule = () => {
       participants: schedule.user.id,
       start: new Date(schedule.start_time),
       end: new Date(schedule.end_time),
-      status: schedule.status.toLowerCase()
+      status: schedule.status.toLowerCase(),
     }));
   };
-
-
-  console.log(events);
-  
 
   const eventStyleGetter = (event: any) => {
     const backgroundColor = statusColorMap[event.status] || '#3B82F6';
@@ -67,8 +63,8 @@ const CalendarSchedule = () => {
         borderColor: backgroundColor,
         color: 'white',
         borderRadius: '4px',
-        opacity: 0.8
-      }
+        opacity: 0.8,
+      },
     };
   };
 
@@ -118,6 +114,7 @@ const CalendarSchedule = () => {
     setShowEventForm(true);
     setIsModify(true);
   };
+
 
   const handleEventDrop = async ({ event, start, end, isAllDay }) => {
     try {
@@ -192,7 +189,8 @@ const CalendarSchedule = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const startUTC = new Date(newEvent.start).toISOString();
+    const endtUTC = new Date(newEvent.end).toISOString();
     if (!newEvent.title || !newEvent.start || !newEvent.end) {
       setError('Please fill in all required fields.');
       return;
@@ -203,14 +201,16 @@ const CalendarSchedule = () => {
     }
 
     try {
+      // Chuyển đổi thời gian start và end sang UTC ISO 8601
+
       const res = await newRequest.post(
         '/api/v1/schedule/create',
         {
           location: parseInt(newEvent.location),
           participants: parseInt(newEvent.participants),
           description: newEvent.description,
-          start: newEvent.start,
-          end: newEvent.end,
+          start: startUTC, // Sử dụng thời gian UTC
+          end: endtUTC, // Sử dụng thời gian UTC
           title: newEvent.title,
         },
         {
@@ -226,8 +226,8 @@ const CalendarSchedule = () => {
         description: newEvent.description,
         location: newEvent.location,
         participants: newEvent.participants,
-        start: newEvent.start,
-        end: newEvent.end,
+        start: new Date(startUTC), // Lưu thời gian UTC
+        end: new Date(endtUTC), // Lưu thời gian UTC
       };
 
       setEvents((prevEvents) => [...prevEvents, newEventData]);
@@ -245,6 +245,7 @@ const CalendarSchedule = () => {
     } catch (error) {
       console.error('Error creating event:', error);
     }
+
   };
 
   const filteredEvents = events.filter((event) =>
@@ -277,7 +278,9 @@ const CalendarSchedule = () => {
         date={date}
         onNavigate={setDate}
         className="shadow-lg rounded-lg bg-white mt-4"
-        tooltipAccessor={(event) => `${event.title}\n${event.description}\nStatus: ${event.status}`}
+        tooltipAccessor={(event) =>
+          `${event.title}\n${event.description}\nStatus: ${event.status}`
+        }
         eventPropGetter={eventStyleGetter}
       />
       {showEventForm && (

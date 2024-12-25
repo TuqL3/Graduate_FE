@@ -5,20 +5,16 @@ import { useAppSelector } from '@/lib/redux/hooks';
 import { useState, useEffect, useRef } from 'react';
 import { formatDistance } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { useWebSocket } from '@/utils/websocket';
 import { Conversation, Message, User } from '@/utils';
 import Image from 'next/image';
+import { useWebSocket } from '@/utils/websocketContext';
 
-export default function Chat() {
+export default function ChatComponent() {
   const user = useAppSelector((state: any) => state.auth.user);
   const currentUserId = user.id;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const {
-    messages: wsMessages,
-    sendMessage,
-    isConnected,
-  } = useWebSocket(currentUserId);
+  const { messages: wsMessages, sendMessage, isConnected } = useWebSocket();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
@@ -190,7 +186,6 @@ export default function Chat() {
         setSelectedConversation(newConversation);
         setConversationMessages([]);
       }
-
     } catch (error) {
       console.error('Failed to create conversation:', error);
       toast.error('Failed to start new conversation');
@@ -283,7 +278,6 @@ export default function Chat() {
         <div className="p-4">
           <h2 className="text-xl font-bold mb-4">Messages</h2>
 
-          {/* User Search Input */}
           <div className="mb-4">
             <input
               type="text"
@@ -294,7 +288,6 @@ export default function Chat() {
             />
           </div>
 
-          {/* User Search Results */}
           {searchQuery && (
             <div className="mb-4 max-h-48 overflow-y-auto">
               {filteredUsers.map((u) => (
@@ -316,7 +309,6 @@ export default function Chat() {
             </div>
           )}
 
-          {/* Existing Conversations List */}
           {isLoading && conversations.length === 0 ? (
             <div className="text-center text-gray-500">
               Loading conversations...
