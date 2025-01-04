@@ -36,11 +36,12 @@ const CalendarSchedule = () => {
   const token = useAppSelector((state: any) => state.auth.token);
   const user = useAppSelector((state: any) => state.auth.user);
 
-  const statusColorMap = {
-    pending: '#3B82F6',
+  const statusColorMap: Record<string, string> = {
+    pending: '#FBBF24',
     resolve: '#10B981',
     reject: '#EF4444',
   };
+  
 
   const transformToEvents = (apiData: any) => {
     return apiData.data.map((schedule: any) => ({

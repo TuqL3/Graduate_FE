@@ -100,7 +100,7 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
         setRooms(roomsResponse.data.data);
         setUsers(usersResponse.data.data);
 
-        if (params.scheduleId) {
+        if (params.scheduleId !== 'new') {
           const scheduleResponse = await newRequest.get(
             `/api/v1/schedule/${params.scheduleId}`,
             {
@@ -131,8 +131,6 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
     fetchData();
   }, [params.scheduleId, token, form]);
 
-  
-
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       const start_time = data.start.toISOString();
@@ -145,8 +143,8 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
           participants: parseInt(data.userName),
           title: data.title,
           description: data.description,
-          start: start_time, 
-          end: end_time, 
+          start: start_time,
+          end: end_time,
           status: data.status,
         },
         {
