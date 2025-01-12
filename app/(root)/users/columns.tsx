@@ -81,7 +81,7 @@ export const columns: ColumnDef<User>[] = [
       const id = row.getValue('id');
       const route = useRouter();
       const dispatch = useAppDispatch();
-      
+
       const token = useAppSelector((state: any) => state.auth.token);
       const handleDelete = async () => {
         await newRequest.delete(`/api/v1/user/delete/${id}`, {
@@ -90,7 +90,7 @@ export const columns: ColumnDef<User>[] = [
           },
         });
         toast.success('Delete user success');
-        dispatch(refresh())
+        dispatch(refresh());
       };
       return (
         <DropdownMenu>
@@ -108,7 +108,7 @@ export const columns: ColumnDef<User>[] = [
                 className="flex items-center justify-between text-black gap-2 hover:no-underline"
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

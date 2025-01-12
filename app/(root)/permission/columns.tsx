@@ -59,8 +59,7 @@ export const columns: ColumnDef<Permission>[] = [
           },
         });
         toast.success('Delete permission success');
-        dispatch(refresh())
-
+        dispatch(refresh());
       };
       return (
         <DropdownMenu>
@@ -78,7 +77,7 @@ export const columns: ColumnDef<Permission>[] = [
                 href={`/permission/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

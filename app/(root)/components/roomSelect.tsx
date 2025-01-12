@@ -67,7 +67,7 @@ const SelectRoom: React.FC<ISelectRoom> = ({ setEvents }) => {
 
       const url =
         roomId === 'all'
-          ? `/api/v1/schedule?userId=${user.id}`
+          ? `/api/v1/schedule?userId=${user.id}&roomId=0`
           : `/api/v1/schedule?userId=${user.id}&roomId=${roomId}`;
       const res = await newRequest.get(url, {
         headers: {

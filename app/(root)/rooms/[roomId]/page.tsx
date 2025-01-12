@@ -34,7 +34,6 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
   const token = useAppSelector((state: any) => state.auth.token);
   const route = useRouter();
 
-
   const FormSchema = z.object({
     name: z.string().min(1, {
       message: 'Please enter room name.',
@@ -47,7 +46,7 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: '',
-      status: "",
+      status: '',
     },
   });
 
@@ -124,7 +123,6 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
     }
 
     console.log(data);
-    
   }
   return (
     <Form {...form}>
@@ -164,9 +162,9 @@ const CreateRoom = ({ params }: { params: { roomId: string } }) => {
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="in_use" />
+                      <RadioGroupItem value="busy" />
                     </FormControl>
-                    <FormLabel className="font-normal">In use</FormLabel>
+                    <FormLabel className="font-normal">Busy</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-3 space-y-0">
                     <FormControl>

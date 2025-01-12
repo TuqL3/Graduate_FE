@@ -15,6 +15,7 @@ interface EventFormProps {
     description: string;
     location: string;
     participants: string;
+    status: string;
   };
   handleInputChange: (
     e: React.ChangeEvent<
@@ -53,6 +54,7 @@ const EventForm: React.FC<EventFormProps> = ({
       participants: apiData.user_id,
       start: new Date(apiData.start_time),
       end: new Date(apiData.end_time),
+      status: apiData.status,
     };
   };
 
@@ -90,8 +92,9 @@ const EventForm: React.FC<EventFormProps> = ({
           start: startUTC,
           end: endtUTC,
           description: newEvent.description,
-          location: newEvent.location,
-          participants: newEvent.participants,
+          location: parseInt(newEvent.location),
+          participants: parseInt(newEvent.participants),
+          status: newEvent.status,
         },
         {
           headers: {
@@ -100,13 +103,7 @@ const EventForm: React.FC<EventFormProps> = ({
         },
       );
 
-
-
       const updatedEvent = transformToEvents(res.data.data);
-      console.log(res.data.data);
-      
-      // console.log(updatedEvent);
-      
 
       const updatedEvents = events.map((event) =>
         event.id === updatedEvent.id ? updatedEvent : event,

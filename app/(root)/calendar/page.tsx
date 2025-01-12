@@ -30,14 +30,17 @@ const CalendarSchedule = () => {
     location: '',
     participants: '',
     id: undefined,
+    status: '',
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
   const token = useAppSelector((state: any) => state.auth.token);
   const user = useAppSelector((state: any) => state.auth.user);
 
-  const statusColorMap = {
-    pending: '#3B82F6',
+  console.log(user);
+
+  const statusColorMap: Record<string, string> = {
+    pending: '#FBBF24',
     resolve: '#10B981',
     reject: '#EF4444',
   };
@@ -96,6 +99,7 @@ const CalendarSchedule = () => {
       location: '',
       participants: '',
       id: undefined,
+      status: '',
     });
     setShowEventForm(true);
     setIsModify(false);
@@ -110,11 +114,11 @@ const CalendarSchedule = () => {
       location: event.location,
       participants: event.participants,
       id: event.id,
+      status: event.status,
     });
     setShowEventForm(true);
     setIsModify(true);
   };
-
 
   const handleEventDrop = async ({ event, start, end, isAllDay }) => {
     try {
@@ -132,6 +136,7 @@ const CalendarSchedule = () => {
           title: event.title,
           start: start,
           end: end,
+          status: event.status,
         },
         {
           headers: {
@@ -165,6 +170,7 @@ const CalendarSchedule = () => {
           title: event.title,
           start: start,
           end: end,
+          status: event.status,
         },
         {
           headers: {
@@ -201,17 +207,20 @@ const CalendarSchedule = () => {
     }
 
     try {
-      // Chuyển đổi thời gian start và end sang UTC ISO 8601
-
       const res = await newRequest.post(
         '/api/v1/schedule/create',
         {
           location: parseInt(newEvent.location),
           participants: parseInt(newEvent.participants),
           description: newEvent.description,
-          start: startUTC, // Sử dụng thời gian UTC
-          end: endtUTC, // Sử dụng thời gian UTC
+          start: startUTC,
+          end: endtUTC,
           title: newEvent.title,
+          status:
+            user.roles[0].role_name === 'admin' ||
+            user.roles[0].role_name === 'trucban'
+              ? 'resolve'
+              : 'pending',
         },
         {
           headers: {
@@ -228,6 +237,11 @@ const CalendarSchedule = () => {
         participants: newEvent.participants,
         start: new Date(startUTC), // Lưu thời gian UTC
         end: new Date(endtUTC), // Lưu thời gian UTC
+        status:
+          user.roles[0].role_name === 'admin' ||
+          user.roles[0].role_name === 'trucban'
+            ? 'resolve'
+            : 'pending',
       };
 
       setEvents((prevEvents) => [...prevEvents, newEventData]);
@@ -240,12 +254,12 @@ const CalendarSchedule = () => {
         location: '',
         participants: '',
         id: undefined,
+        status: '',
       });
       setError('');
     } catch (error) {
       console.error('Error creating event:', error);
     }
-
   };
 
   const filteredEvents = events.filter((event) =>

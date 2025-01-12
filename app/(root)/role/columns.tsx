@@ -44,22 +44,18 @@ export const columns: ColumnDef<Role>[] = [
     },
   },
 
-  { 
-    accessorKey: 'permissions', 
-    accessorFn: (row: any) => { 
-      return row.permissions 
-        .map((item: any) => item.permission_name) 
-        .join(', '); 
-      }, 
-    header: 'Permission name', 
-    cell: ({ row }) => { 
+  {
+    accessorKey: 'permissions',
+    accessorFn: (row: any) => {
+      return row.permissions
+        .map((item: any) => item.permission_name)
+        .join(', ');
+    },
+    header: 'Permission name',
+    cell: ({ row }) => {
       const permissions = row.getValue('permissions');
-      return ( 
-        <div className='w-48 truncate'> 
-          {row.getValue('permissions')} 
-        </div> 
-      ); 
-    }, 
+      return <div className="w-48 truncate">{row.getValue('permissions')}</div>;
+    },
   },
 
   {
@@ -78,8 +74,7 @@ export const columns: ColumnDef<Role>[] = [
           },
         });
         toast.success('Delete role success');
-        dispatch(refresh())
-
+        dispatch(refresh());
       };
       return (
         <DropdownMenu>
@@ -97,7 +92,7 @@ export const columns: ColumnDef<Role>[] = [
                 href={`/role/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

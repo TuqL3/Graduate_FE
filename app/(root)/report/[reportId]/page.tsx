@@ -32,11 +32,12 @@ import { newRequest } from '@/lib/newRequest';
 import toast from 'react-hot-toast';
 
 const CreateReport = ({ params }: { params: { reportId: string } }) => {
+  const [reportData, setReportData] = useState(null);
+
   const [rooms, setRooms] = useState<Room[]>([]);
   const user = useAppSelector((state: any) => state.auth.user);
   const token = useAppSelector((state: any) => state.auth.token);
   const route = useRouter();
-
 
   const FormSchema = z.object({
     room_id: z.string().min(1, {
@@ -46,6 +47,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
     content: z.string().min(1, {
       message: 'Description must be at least 10 characters.',
     }),
+    status: z.any(),
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -54,6 +56,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
       room_id: '',
       equipment_id: '',
       content: '',
+      status: '',
     },
   });
 
@@ -81,13 +84,13 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
           );
 
           const reportData = res.data.data;
-          console.log(reportData);
-          
+          setReportData(reportData);
 
           form.reset({
             room_id: String(reportData.room.id),
             equipment_id: reportData.equipment_id,
             content: reportData.content,
+            status: reportData.status,
           });
         } catch (error) {
           console.error('Error fetching equipment:', error);
@@ -98,6 +101,17 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
     fetchRoom();
     fetchReportData();
   }, [params.reportId, token, form]);
+
+  useEffect(() => {
+    if (reportData) {
+      form.reset({
+        room_id: String(reportData.room.id),
+        equipment_id: reportData.equipment_id,
+        content: reportData.content,
+        status: reportData.status,
+      });
+    }
+  }, [reportData, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
@@ -133,7 +147,7 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
               room_id: parseInt(data.room_id),
               equipment_id: parseInt(data.equipment_id),
               content: data.content,
-              status: 'pending',
+              status: data.status,
             },
             {
               headers: {
@@ -151,8 +165,6 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
     } catch (error) {
       console.error('Error:', error);
     }
-
-    console.log(data);
   }
   return (
     <Form {...form}>
@@ -219,6 +231,46 @@ const CreateReport = ({ params }: { params: { reportId: string } }) => {
               <FormMessage />
             </FormItem>
           )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={
+            ({ field }) =>
+              params.reportId !== 'new' ? ( // Kiểm tra nếu reportId khác "new"
+                <FormItem className="space-y-3">
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="pending" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Pending</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="resolve" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Resolve</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="reject" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Reject</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              ) : <></> // Không hiển thị gì nếu reportId là "new"
+          }
         />
 
         <Button type="submit">Submit</Button>

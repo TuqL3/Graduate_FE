@@ -38,7 +38,7 @@ export const columns: ColumnDef<Report>[] = [
     header: 'ID',
   },
   {
-    accessorFn: (row:any) => row.room.name,
+    accessorFn: (row: any) => row.room.name,
     accessorKey: 'room',
     header: ({ column }) => {
       return (
@@ -67,7 +67,7 @@ export const columns: ColumnDef<Report>[] = [
       );
     },
   },
-  
+
   {
     accessorKey: 'status',
     header: 'Status',
@@ -88,8 +88,7 @@ export const columns: ColumnDef<Report>[] = [
           },
         });
         toast.success('Delete equipment success');
-        dispatch(refresh())
-
+        dispatch(refresh());
       };
 
       return (
@@ -108,7 +107,7 @@ export const columns: ColumnDef<Report>[] = [
                 href={`/report/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
