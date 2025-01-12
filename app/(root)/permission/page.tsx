@@ -31,7 +31,6 @@ export default function DemoPage() {
     fetchData();
   }, [token, isRefresh]);
 
-  console.log(data);
   
 
   return (

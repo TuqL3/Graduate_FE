@@ -30,17 +30,21 @@ import { useRouter } from 'next/navigation';
 
 const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
   const FormSchema = z.object({
-    room: z.string().min(1, {
-      message: 'Room must be at least 2 characters.',
-    }),
+    room: z.any(),
     status: z.string(),
     name: z.string().min(1, {
       message: 'Equipment name must be at least 2 characters.',
     }),
-    type: z.string().min(1, {
-      message: 'Equipment name must be at least 2 characters.',
-    }),
+    type: z.any(),
   });
+  interface EquipmentData {
+    room?: { id: number };
+    status?: string;
+    name?: string;
+    equipment_type?: { id: number };
+  }
+
+  const [equipmentData, setEquipmentData] = useState<EquipmentData | null>(null);
 
   const [rooms, setRooms] = useState([]);
   const [types, setTypes] = useState([]);
@@ -49,10 +53,10 @@ const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      room: undefined,
+      room: '',
       status: '',
       name: '',
-      type: undefined,
+      type: '',
     },
   });
 
@@ -88,17 +92,7 @@ const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
             },
           );
 
-          const equipmentData = res.data.data;
-          console.log(equipmentData);
-
-          form.reset({
-            room: String(equipmentData.room_id),
-            status: equipmentData.status,
-            name: equipmentData.name,
-            type: equipmentData.equipment_type_id
-              ? String(equipmentData.equipment_type_id)
-              : '',
-          });
+          setEquipmentData(res.data.data);
         } catch (error) {
           console.error('Error fetching equipment:', error);
         }
@@ -109,6 +103,19 @@ const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
     fetchEquipmentData();
     fetchType();
   }, [params.equipmentId, token, form]);
+
+  useEffect(() => {
+    if (equipmentData) {
+      form.reset({
+        room: equipmentData.room?.id ? String(equipmentData.room.id) : '',
+        status: equipmentData.status || '',
+        name: equipmentData.name || '',
+        type: equipmentData.equipment_type?.id
+          ? String(equipmentData.equipment_type.id)
+          : '',
+      });
+    }
+  }, [equipmentData, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
@@ -161,7 +168,6 @@ const CreateEquipment = ({ params }: { params: { equipmentId: string } }) => {
       console.error('Error:', error);
     }
 
-    console.log(data);
   }
 
   return (

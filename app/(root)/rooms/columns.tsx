@@ -64,7 +64,7 @@ export const columns: ColumnDef<Room>[] = [
           },
         });
         toast.success('Delete room success');
-        dispatch(refresh())
+        dispatch(refresh());
       };
       return (
         <DropdownMenu>
@@ -82,7 +82,7 @@ export const columns: ColumnDef<Room>[] = [
                 href={`/rooms/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

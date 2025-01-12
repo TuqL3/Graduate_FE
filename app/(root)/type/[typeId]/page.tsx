@@ -118,7 +118,6 @@ const CreateRoom = ({ params }: { params: { typeId: string } }) => {
       console.error('Error:', error);
     }
 
-    console.log(data);
   }
   return (
     <Form {...form}>

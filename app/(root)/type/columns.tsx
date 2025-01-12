@@ -59,8 +59,7 @@ export const columns: ColumnDef<Type>[] = [
           },
         });
         toast.success('Delete equipmenttype success');
-        dispatch(refresh())
-
+        dispatch(refresh());
       };
       return (
         <DropdownMenu>
@@ -78,7 +77,7 @@ export const columns: ColumnDef<Type>[] = [
                 href={`/type/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

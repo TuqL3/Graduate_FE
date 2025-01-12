@@ -96,8 +96,7 @@ export const columns: ColumnDef<Equipment>[] = [
           },
         });
         toast.success('Delete equipment success');
-        dispatch(refresh())
-
+        dispatch(refresh());
       };
 
       return (
@@ -116,7 +115,7 @@ export const columns: ColumnDef<Equipment>[] = [
                 className="flex items-center justify-between text-black gap-2 hover:no-underline"
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

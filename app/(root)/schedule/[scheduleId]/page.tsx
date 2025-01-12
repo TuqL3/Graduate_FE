@@ -160,7 +160,6 @@ const CreateRoom = ({ params }: { params: { scheduleId: string } }) => {
       toast.error('Something went wrong');
     }
 
-    console.log(data);
   }
 
   const toLocalDatetimeString = (date: Date): string => {

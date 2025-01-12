@@ -128,7 +128,7 @@ export const columns: ColumnDef<Schedule>[] = [
       const token = useAppSelector((state: any) => state.auth.token);
 
       const handleDelete = async () => {
-        await newRequest.delete(`/api/v1/Schedule/delete/${id}`, {
+        await newRequest.delete(`/api/v1/schedule/delete/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -152,7 +152,7 @@ export const columns: ColumnDef<Schedule>[] = [
                 href={`/schedule/${id}`}
               >
                 <Pencil />
-                <span>Update</span>
+                <span>View</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem

@@ -69,11 +69,11 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Users</h2>
-          <span className="text-gray-500">User list</span>
+          <h2 className="">Users</h2>
+          <span className="opacity-40">User list</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -109,7 +109,7 @@ export default function DemoPage() {
         </p>
       )}
 
-      <div className="bg-white p-6 rounded-md shadow-md">
+      <div className="bg-white rounded-md">
         <DataTable columns={columns} data={data} />
       </div>
     </div>

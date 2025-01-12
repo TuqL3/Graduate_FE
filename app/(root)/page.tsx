@@ -36,21 +36,21 @@ const Dashboard = () => {
   const token = useAppSelector((state: any) => state.auth.token);
 
   const [widgets, setWidgets] = useState([
-    { id: 'reports', type: 'line', title: 'Số lượng báo cáo của các phòng' },
-    { id: 'roomUsage', type: 'bar', title: 'Tần suất phòng được sử dụng' },
-    { id: 'distribution', type: 'pie', title: 'Trạng thái thiết bị' },
-    { id: 'userUsage', type: 'bar', title: 'Tần suất người sử dụng' },
+    { id: 'reports', type: 'line', title: 'Number of reports by room' },
+    { id: 'roomUsage', type: 'bar', title: 'Room usage frequency' },
+    { id: 'distribution', type: 'pie', title: 'Device status' },
+    { id: 'userUsage', type: 'bar', title: 'User usage frequency' },
   ]);
 
   const [theme, setTheme] = useState('light');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [dummyData, setDummyData] = useState([]);
   const [countScheduleRoom, setCountScheduleRoom] = useState([]);
   const [countScheduleUser, setCountScheduleUser] = useState([]);
   const [countStatus, setCountStatus] = useState([]);
-  
+
   const [countRoom, setCountRoom] = useState(0);
   const [countReport, setCountReport] = useState(0);
   const [countUser, setCountUser] = useState(0);
@@ -61,7 +61,7 @@ const Dashboard = () => {
       try {
         setIsLoading(true);
         const headers = {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         };
 
         const [
@@ -72,7 +72,7 @@ const Dashboard = () => {
           userCount,
           roomCount,
           reportCount,
-          equipmentCount
+          equipmentCount,
         ] = await Promise.all([
           newRequest.get('/api/v1/report/getCountReportOfRoom', { headers }),
           newRequest.get('/api/v1/schedule/countScheduleRoom', { headers }),
@@ -81,7 +81,7 @@ const Dashboard = () => {
           newRequest.get('/api/v1/user/getcountuser', { headers }),
           newRequest.get('/api/v1/room/getcountroom', { headers }),
           newRequest.get('/api/v1/report/getCountReport', { headers }),
-          newRequest.get('/api/v1/equipment/getCountEquipment', { headers })
+          newRequest.get('/api/v1/equipment/getCountEquipment', { headers }),
         ]);
 
         setDummyData(reportCountRoom.data.data || []);
@@ -92,9 +92,11 @@ const Dashboard = () => {
         setCountRoom(roomCount.data.data || 0);
         setCountReport(reportCount.data.data || 0);
         setCountEquipment(equipmentCount.data.data || 0);
-
       } catch (err: any) {
-        setError(err.response?.data?.message || 'An error occurred while fetching data');
+        setError(
+          err.response?.data?.message ||
+            'An error occurred while fetching data',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -109,9 +111,10 @@ const Dashboard = () => {
     labels: countScheduleUser.map((item: any) => item.name),
     datasets: [
       {
-        label: 'Tần suất người sử dụng',
+        label: 'User usage frequency',
         data: countScheduleUser.map((item: any) => item.count),
-        backgroundColor: theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
+        backgroundColor:
+          theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },
     ],
   };
@@ -120,10 +123,13 @@ const Dashboard = () => {
     labels: dummyData.map((item: any) => item.room),
     datasets: [
       {
-        label: 'Số lượng báo cáo 2023',
+        label: 'Number of reports',
         data: dummyData.map((item: any) => item.count),
         borderColor: theme === 'dark' ? '#f4a261' : 'rgb(75, 192, 192)',
-        backgroundColor: theme === 'dark' ? 'rgba(244, 162, 97, 0.3)' : 'rgba(75, 192, 192, 0.3)',
+        backgroundColor:
+          theme === 'dark'
+            ? 'rgba(244, 162, 97, 0.3)'
+            : 'rgba(75, 192, 192, 0.3)',
         tension: 0.1,
       },
     ],
@@ -133,9 +139,10 @@ const Dashboard = () => {
     labels: countScheduleRoom.map((item: any) => item.room),
     datasets: [
       {
-        label: 'Tần suất phòng được sử dụng',
+        label: 'Frequency of room usage',
         data: countScheduleRoom.map((item: any) => item.count),
-        backgroundColor: theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
+        backgroundColor:
+          theme === 'dark' ? '#e9c46a' : 'rgba(53, 162, 235, 0.5)',
       },
     ],
   };
@@ -183,12 +190,16 @@ const Dashboard = () => {
 
   const renderWidget = (widget: any) => {
     if (isLoading) {
-      return <div className="animate-pulse h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>;
+      return (
+        <div className="animate-pulse h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      );
     }
 
     switch (widget.type) {
       case 'line':
-        return <Line data={transformedLineData} options={{ responsive: true }} />;
+        return (
+          <Line data={transformedLineData} options={{ responsive: true }} />
+        );
       case 'bar':
         if (widget.id === 'roomUsage') {
           return <Bar data={roomUsageData} options={{ responsive: true }} />;
@@ -255,7 +266,11 @@ const Dashboard = () => {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"
             >
               {widgets.map((widget, index) => (
-                <Draggable key={widget.id} draggableId={widget.id} index={index}>
+                <Draggable
+                  key={widget.id}
+                  draggableId={widget.id}
+                  index={index}
+                >
                   {(provided) => (
                     <div
                       ref={provided.innerRef}
